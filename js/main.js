@@ -5,21 +5,15 @@ window.app = {
     onInit,
     onToggleTheme,
     onShowGroundings,
-    onLoadPDF,
     onNextPage,
-    onPrevPage,
-    onAddBounds
+    onPrevPage
 }
 
-// PDF state
-let currentPageNum = 1
-let totalPages = 0
-let currentPdfUrl = null
-let sampleBounds = [
-    { bounds: [100, 700, 300, 750], label: 'Header' },
-    { bounds: [100, 500, 400, 600], label: 'Table Section' },
-    { bounds: [50, 100, 200, 150], label: 'Footer' }
-]
+const pdfState = {
+    currentPageNum: 1,
+    totalPages: 0,
+    currentPdfUrl: null
+}
 
 
 async function onInit() {
@@ -59,22 +53,22 @@ function renderEntries(entries) {
                 ${entry.engine.esn.value}
             </td>
             <td>
-                ${entry.engine.totalHourRange.start.value}
+                ${entry.engine.totalHourRange.start.value.toLocaleString()}
             </td>
             <td>
-                ${entry.engine.totalCycleRange.start.value}
+                ${entry.engine.totalCycleRange.start.value.toLocaleString()}
             </td>
-            <td class="part-hours" rowspan="2" onclick="app.onShowGroundings('${entry.id}', 'part.hours')">
-                ${entry.part.hours.value}
+            <td class="cell-with-groundings" rowspan="2" onclick="app.onShowGroundings('${entry.id}', 'part.hours')">
+                ${entry.part.hours.value.toLocaleString()}
             </td>
-            <td rowspan="2">
-                ${entry.part.cycles.value}
-            </td>
-            <td rowspan="2">
-                ${entry.part.totalHours.value}
+            <td  class="cell-with-groundings" rowspan="2" onclick="app.onShowGroundings('${entry.id}', 'part.cycles')">
+                ${entry.part.cycles.value.toLocaleString()}
             </td>
             <td rowspan="2">
-                ${entry.part.totalCycles.value}
+                ${entry.part.totalHours.value.toLocaleString()}
+            </td>
+            <td rowspan="2">
+                ${entry.part.totalCycles.value.toLocaleString()}
             </td>
             <td rowspan="2">
                 ${entry.op.name}
@@ -88,10 +82,10 @@ function renderEntries(entries) {
                ${entry.dateRange.end}
             </td>
             <td>
-                ${entry.engine.totalHourRange.end.value}
+                ${entry.engine.totalHourRange.end.value.toLocaleString()}
             </td>
             <td>
-                ${entry.engine.totalCycleRange.end.value}
+                ${entry.engine.totalCycleRange.end.value.toLocaleString()}
             </td>
         </tr>    
     `})
@@ -118,12 +112,12 @@ async function onShowGroundings(entryId, fieldPath) {
     }
     
     // Check if we need to load a different PDF
-    if (currentPdfUrl !== grounding.url) {
+    if (pdfState.currentPdfUrl !== grounding.url) {
         const result = await pdfService.loadPDF(grounding.url)
         
         if (result.success) {
-            currentPdfUrl = grounding.url
-            totalPages = result.numPages
+            pdfState.currentPdfUrl = grounding.url
+            pdfState.totalPages = result.numPages
         } else {
             alert('Error loading PDF: ' + result.error)
             return
@@ -131,20 +125,20 @@ async function onShowGroundings(entryId, fieldPath) {
     }
     
     // Navigate to the page with the grounding
-    currentPageNum = grounding.pageNum
+    pdfState.currentPageNum = grounding.pageNum
     renderPageInfo()
     
     // Clear and render page with the specific grounding highlighted
     pdfService.clearBounds()
-    await pdfService.renderPage(currentPageNum)
+    await pdfService.renderPage(pdfState.currentPageNum)
     
     // Draw the grounding bound with highlighting
     pdfService.drawBounds(
         [grounding.x1, grounding.y1, grounding.x2, grounding.y2],
         {
-            strokeStyle: '#00FF00',  // Green for grounding highlight
-            fillStyle: 'rgba(0, 255, 0, 0.25)',
-            label: fieldPath,
+            strokeStyle: '#8191ecff',  // Green for grounding highlight
+            fillStyle: 'rgba(105, 163, 240, 0.25)',
+            // label: fieldPath,
             lineWidth: 3
         }
     )
@@ -156,72 +150,31 @@ async function onShowGroundings(entryId, fieldPath) {
     })
 }
 
-// PDF Viewer Functions
-async function onLoadPDF() {
-    const pdfUrl = 'pdf/doc1.pdf'
-    const result = await pdfService.loadPDF(pdfUrl)
-    
-    if (result.success) {
-        currentPdfUrl = pdfUrl
-        totalPages = result.numPages
-        currentPageNum = 1
-        renderPageInfo()
-        await renderCurrentPage()
-    } else {
-        alert('Error loading PDF: ' + result.error)
-    }
-}
+
 
 async function renderCurrentPage() {
     pdfService.clearBounds()
-    await pdfService.renderPage(currentPageNum)
+    await pdfService.renderPage(pdfState.currentPageNum)
     
-    // Draw all sample bounds
-    sampleBounds.forEach(item => {
-        pdfService.drawBounds(item.bounds, {
-            strokeStyle: '#FF0000',
-            fillStyle: 'rgba(255, 0, 0, 0.15)',
-            label: item.label,
-            lineWidth: 2
-        })
-    })
 }
 
 function onNextPage() {
-    if (currentPageNum < totalPages) {
-        currentPageNum++
+    if (pdfState.currentPageNum < pdfState.totalPages) {
+        pdfState.currentPageNum++
         renderPageInfo()
         renderCurrentPage()
     }
 }
 
 function onPrevPage() {
-    if (currentPageNum > 1) {
-        currentPageNum--
+    if (pdfState.currentPageNum > 1) {
+        pdfState.currentPageNum--
         renderPageInfo()
         renderCurrentPage()
     }
 }
 
-function onAddBounds() {
-    // Example: Add a new random bound
-    const newBound = {
-        bounds: [
-            Math.random() * 400 + 50,  // x1
-            Math.random() * 600 + 100, // y1
-            Math.random() * 400 + 100, // x2
-            Math.random() * 600 + 150  // y2
-        ],
-        label: `Bound ${sampleBounds.length + 1}`
-    }
-    
-    sampleBounds.push(newBound)
-    renderCurrentPage()
-    
-    console.log('Added bound:', newBound)
-}
-
 function renderPageInfo() {
-    document.getElementById('page-num').textContent = currentPageNum
-    document.getElementById('page-count').textContent = totalPages
+    document.getElementById('page-num').textContent = pdfState.currentPageNum
+    document.getElementById('page-count').textContent = pdfState.totalPages
 }

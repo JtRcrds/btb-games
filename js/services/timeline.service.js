@@ -57,13 +57,13 @@ const demoData = [
             hours: {
                 value: 1322,
                 groundings: [{
-                    cFileId: 'cfile-101', pageNum: 2, x1: 200, y1: 200, x2: 300, y2: 300
+                    cFileId: 'cfile-101', pageNum: 1, x1: 135, y1: 350, x2: 185, y2: 375
                 }]
             },
             cycles: {
                 value: 540,
                 groundings: [{
-                    cFileId: 'cfile-101', pageNum: 2, x1: 100, y1: 100, x2: 200, y2: 200
+                    cFileId: 'cfile-101', pageNum: 1, x1: 140, y1: 318, x2: 180, y2: 343
                 }]
             },
             totalHours: {

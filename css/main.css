@@ -91,7 +91,7 @@ body {
 
 
 
-.timeline-table .part-hours:hover {
+.timeline-table .cell-with-groundings:hover {
     cursor: pointer;
     color: var(--table-cell-text-highlite);
 }
