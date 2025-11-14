@@ -100,6 +100,17 @@ body {
     color: var(--table-cell-text-highlite);
 }
 
+.timeline-table .cell-with-groundings:focus {
+    outline: 2px solid var(--grounding-highlight);
+    outline-offset: -2px;
+    background-color: var(--grounding-highlight-bg);
+}
+
+.timeline-table .cell-with-groundings:focus-visible {
+    outline: 2px solid var(--grounding-highlight);
+    outline-offset: -2px;
+}
+
 /* PDF Viewer Styles */
 .pdf-viewer-container {
     margin-top: 40px;

@@ -35,6 +35,9 @@ async function onInit() {
     const entries = await timelineService.query()
 
     renderEntries(entries)
+    
+    // Setup keyboard navigation
+    setupTableKeyboardNavigation()
 
 }
 
@@ -55,10 +58,10 @@ function renderEntries(entries) {
             <td>
                 ON
             </td>
-            <td class="cell-with-groundings" onclick="app.onShowGroundings('${entry.id}', 'dateRange.start')">
+            <td class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start" onclick="app.onShowGroundings('${entry.id}', 'dateRange.start')">
                 ${entry.dateRange.start.value}
             </td>
-            <td class="cell-with-groundings" rowspan="2" onclick="app.onShowGroundings('${entry.id}', 'engine.esn')">
+            <td class="cell-with-groundings" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn" onclick="app.onShowGroundings('${entry.id}', 'engine.esn')">
                 ${entry.engine.esn.value}
             </td>
             <td>
@@ -67,10 +70,10 @@ function renderEntries(entries) {
             <td>
                 ${entry.engine.totalCycleRange.start.value.toLocaleString()}
             </td>
-            <td class="cell-with-groundings" rowspan="2" onclick="app.onShowGroundings('${entry.id}', 'part.hours')">
+            <td class="cell-with-groundings" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="part.hours" onclick="app.onShowGroundings('${entry.id}', 'part.hours')">
                 ${entry.part.hours.value.toLocaleString()}
             </td>
-            <td  class="cell-with-groundings" rowspan="2" onclick="app.onShowGroundings('${entry.id}', 'part.cycles')">
+            <td class="cell-with-groundings" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="part.cycles" onclick="app.onShowGroundings('${entry.id}', 'part.cycles')">
                 ${entry.part.cycles.value.toLocaleString()}
             </td>
             <td rowspan="2">
@@ -79,7 +82,7 @@ function renderEntries(entries) {
             <td rowspan="2">
                 ${entry.part.totalCycles.value.toLocaleString()}
             </td>
-            <td rowspan="2" class="cell-with-groundings" onclick="app.onShowGroundings('${entry.id}', 'op')">
+            <td rowspan="2" tabindex="0" class="cell-with-groundings" data-entry-id="${entry.id}" data-field-path="op" onclick="app.onShowGroundings('${entry.id}', 'op')">
                 ${entry.op.name}
             </td>
         </tr>    
@@ -87,13 +90,13 @@ function renderEntries(entries) {
             <td>
                 OFF
             </td>
-            <td class="cell-with-groundings" onclick="app.onShowGroundings('${entry.id}', 'dateRange.end')">
+            <td class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end" onclick="app.onShowGroundings('${entry.id}', 'dateRange.end')">
                ${entry.dateRange.end.value}
             </td>
-            <td class="cell-with-groundings" onclick="app.onShowGroundings('${entry.id}', 'engine.totalHourRange.end')">
+            <td class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end" onclick="app.onShowGroundings('${entry.id}', 'engine.totalHourRange.end')">
                 ${entry.engine.totalHourRange.end.value.toLocaleString()}
             </td>
-            <td class="cell-with-groundings" onclick="app.onShowGroundings('${entry.id}', 'engine.totalCycleRange.end')">
+            <td class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end" onclick="app.onShowGroundings('${entry.id}', 'engine.totalCycleRange.end')">
                 ${entry.engine.totalCycleRange.end.value.toLocaleString()}
             </td>
         </tr>    
@@ -248,4 +251,72 @@ function onPrevPage() {
 function renderPageInfo() {
     document.getElementById('page-num').textContent = pdfState.currentPageNum
     document.getElementById('page-count').textContent = pdfState.totalPages
+}
+
+function setupTableKeyboardNavigation() {
+    const table = document.querySelector('.timeline-table')
+    
+    table.addEventListener('keydown', (e) => {
+        const activeCell = document.activeElement
+        
+        // Only handle if we're focused on a cell with groundings
+        if (!activeCell.classList.contains('cell-with-groundings')) {
+            return
+        }
+        
+        // Enter or Space: Trigger grounding
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            const entryId = activeCell.dataset.entryId
+            const fieldPath = activeCell.dataset.fieldPath
+            if (entryId && fieldPath) {
+                onShowGroundings(entryId, fieldPath)
+            }
+            return
+        }
+        
+        // Arrow keys: Navigate
+        if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+            return
+        }
+        
+        e.preventDefault()
+        
+        const allCells = Array.from(table.querySelectorAll('.cell-with-groundings[tabindex="0"]'))
+        const currentIndex = allCells.indexOf(activeCell)
+        
+        if (currentIndex === -1) return
+        
+        let nextCell = null
+        
+        switch (e.key) {
+            case 'ArrowRight':
+                nextCell = allCells[currentIndex + 1]
+                break
+            case 'ArrowLeft':
+                nextCell = allCells[currentIndex - 1]
+                break
+            case 'ArrowDown':
+                // Navigate to roughly the same column in next row
+                const currentRow = activeCell.closest('tr')
+                const nextRow = currentRow.nextElementSibling?.nextElementSibling // Skip to next entry (2 rows)
+                if (nextRow) {
+                    const cellsInNextRow = Array.from(nextRow.querySelectorAll('.cell-with-groundings[tabindex="0"]'))
+                    nextCell = cellsInNextRow[0] // Move to first cell in next entry
+                }
+                break
+            case 'ArrowUp':
+                // Navigate to roughly the same column in previous row
+                const prevRow = activeCell.closest('tr').previousElementSibling?.previousElementSibling
+                if (prevRow) {
+                    const cellsInPrevRow = Array.from(prevRow.querySelectorAll('.cell-with-groundings[tabindex="0"]'))
+                    nextCell = cellsInPrevRow[cellsInPrevRow.length - 1] // Move to last cell in prev entry
+                }
+                break
+        }
+        
+        if (nextCell) {
+            nextCell.focus()
+        }
+    })
 }
