@@ -1,0 +1,101 @@
+:root {
+    /* Dark theme (default) */
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --table-bg: #2a2a2a;
+    --table-border: #3a3a3a;
+    --table-header-bg: #1e293b;
+    --table-header-text: #ffffff;
+    --table-cell-bg: #2a2a2a;
+    --table-cell-text: #e0e0e0;
+    --table-header-border: #475569;
+}
+
+:root.light-theme {
+    /* Light theme */
+    --bg-color: #f5f5f5;
+    --text-color: #2c3e50;
+    --table-bg: #ffffff;
+    --table-border: #d0d0d0;
+    --table-header-bg: #2c3e50;
+    --table-header-text: #ffffff;
+    --table-cell-bg: #ffffff;
+    --table-cell-text: #2c3e50;
+    --table-header-border: #34495e;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+    margin: 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    opacity: 0.8;
+}
+
+.ttable-container {
+    width: 50vw;
+}
+
+.timeline-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--table-bg);
+    border: 1px solid var(--table-border);
+}
+
+.timeline-table thead {
+    background-color: var(--table-header-bg);
+}
+
+.timeline-table th {
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--table-header-text);
+    border: 1px solid var(--table-header-border);
+}
+
+.timeline-table tbody tr {
+    border: 1px solid var(--table-border);
+}
+
+.timeline-table td {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--table-cell-text);
+    border: 1px solid var(--table-border);
+    background-color: var(--table-cell-bg);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .timeline-table {
+        font-size: 11px;
+    }
+    
+    .timeline-table th,
+    .timeline-table td {
+        padding: 6px 8px;
+    }
+}
