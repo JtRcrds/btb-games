@@ -2,7 +2,8 @@ import { timelineService } from './services/timeline.service.js'
 
 window.app = {
     onInit,
-    onToggleTheme
+    onToggleTheme,
+    onShowGroundings
 }
 
 
@@ -48,7 +49,7 @@ function renderEntries(entries) {
             <td>
                 ${entry.engine.totalCycleRange.start.value}
             </td>
-            <td rowspan="2">
+            <td class="part-hours" rowspan="2" onclick="app.onShowGroundings('${entry.id}', 'part.hours')">
                 ${entry.part.hours.value}
             </td>
             <td rowspan="2">
@@ -82,4 +83,9 @@ function renderEntries(entries) {
 
     document.querySelector('.timeline-table tbody').innerHTML = strHTMLs.join('')
 
+}
+
+function onShowGroundings(entryId, fieldPath) {
+    const groundings = timelineService.getGroundings(entryId, fieldPath)
+    console.log('Groundings for', entryId, fieldPath, groundings)
 }

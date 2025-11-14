@@ -1,5 +1,6 @@
 export const timelineService = {
-    query
+    query,
+    getGroundings
 }
 
 
@@ -147,3 +148,30 @@ const demoData = [
         }
     }
 ]
+
+const cfileUrlMap = {
+    'cfile-101': 'pdf/doc1.pdf'
+}
+
+function getGroundings(entryId, fieldPath) {
+    const entry = demoData.find(entry => entry.id === entryId)
+    if (!entry) return []
+    const fieldPaths = fieldPath.split('.')
+    let field = entry
+    for (const path of fieldPaths) {
+        field = field[path]
+        if (!field) return []
+    }
+    if (!field.groundings) return []
+
+    // Map cFileId to actual URL
+    const groundingsWithUrls = field.groundings.map(grounding => {
+        return {
+            ...grounding,
+            url: cfileUrlMap[grounding.cFileId] || null
+        }
+    })
+
+    return groundingsWithUrls
+}
+
