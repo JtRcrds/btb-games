@@ -46,10 +46,10 @@ function renderEntries(entries) {
             <td>
                 ON
             </td>
-            <td>
-                ${entry.dateRange.start}
+            <td class="cell-with-groundings" onclick="app.onShowGroundings('${entry.id}', 'dateRange.start')">
+                ${entry.dateRange.start.value}
             </td>
-            <td rowspan="2">
+            <td class="cell-with-groundings" rowspan="2" onclick="app.onShowGroundings('${entry.id}', 'engine.esn')">
                 ${entry.engine.esn.value}
             </td>
             <td>
@@ -70,7 +70,7 @@ function renderEntries(entries) {
             <td rowspan="2">
                 ${entry.part.totalCycles.value.toLocaleString()}
             </td>
-            <td rowspan="2">
+            <td rowspan="2" class="cell-with-groundings" onclick="app.onShowGroundings('${entry.id}', 'op')">
                 ${entry.op.name}
             </td>
         </tr>    
@@ -78,13 +78,13 @@ function renderEntries(entries) {
             <td>
                 OFF
             </td>
-            <td>
-               ${entry.dateRange.end}
+            <td class="cell-with-groundings" onclick="app.onShowGroundings('${entry.id}', 'dateRange.end')">
+               ${entry.dateRange.end.value}
             </td>
-            <td>
+            <td class="cell-with-groundings" onclick="app.onShowGroundings('${entry.id}', 'engine.totalHourRange.end')">
                 ${entry.engine.totalHourRange.end.value.toLocaleString()}
             </td>
-            <td>
+            <td class="cell-with-groundings" onclick="app.onShowGroundings('${entry.id}', 'engine.totalCycleRange.end')">
                 ${entry.engine.totalCycleRange.end.value.toLocaleString()}
             </td>
         </tr>    
