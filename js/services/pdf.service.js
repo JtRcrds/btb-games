@@ -15,14 +15,17 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 
 async function loadPDF(url) {
     try {
+        console.log('Loading PDF from:', url)
         const loadingTask = pdfjsLib.getDocument(url)
         pdfDoc = await loadingTask.promise
+        console.log('PDF loaded successfully, pages:', pdfDoc.numPages)
         return {
             success: true,
             numPages: pdfDoc.numPages
         }
     } catch (error) {
         console.error('Error loading PDF:', error)
+        console.error('PDF URL was:', url)
         return {
             success: false,
             error: error.message

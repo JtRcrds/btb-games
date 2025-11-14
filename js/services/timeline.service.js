@@ -169,7 +169,7 @@ const demoData = [
 ]
 
 const cfileUrlMap = {
-    'cfile-101': 'pdf/doc1.pdf'
+    'cfile-101': './pdf/doc1.pdf'
 }
 
 function getGroundings(entryId, fieldPath) {
