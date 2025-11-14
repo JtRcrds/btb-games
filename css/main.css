@@ -96,6 +96,74 @@ body {
     color: var(--table-cell-text-highlite);
 }
 
+/* PDF Viewer Styles */
+.pdf-viewer-container {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: var(--table-bg);
+    border-radius: 8px;
+    border: 1px solid var(--table-border);
+}
+
+.pdf-viewer-container h2 {
+    margin: 0 0 20px 0;
+    color: var(--text-color);
+    font-size: 20px;
+}
+
+.pdf-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.pdf-controls button {
+    padding: 8px 16px;
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.pdf-controls button:hover {
+    opacity: 0.8;
+}
+
+.pdf-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#page-info {
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.canvas-wrapper {
+    position: relative;
+    display: inline-block;
+    border: 1px solid var(--table-border);
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#pdf-canvas {
+    display: block;
+}
+
+#bounds-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
 
 /* Responsive design */
 @media (max-width: 768px) {

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BtB Tryouts</title>
     <link rel="stylesheet" href="css/main.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body onload="app.onInit()">
     <button class="theme-toggle" onclick="app.onToggleTheme()">Toggle Theme</button>
@@ -28,6 +29,21 @@
             </thead>
             <tbody></tbody>
         </table>
+    </section>
+
+    <section class="pdf-viewer-container">
+        <h2>PDF Viewer with Bounds</h2>
+        <div class="pdf-controls">
+            <button onclick="app.onLoadPDF()">Load PDF</button>
+            <button onclick="app.onPrevPage()">Previous</button>
+            <span id="page-info">Page: <span id="page-num">1</span> / <span id="page-count">-</span></span>
+            <button onclick="app.onNextPage()">Next</button>
+            <button onclick="app.onAddBounds()">Add Bounds</button>
+        </div>
+        <div class="canvas-wrapper">
+            <canvas id="pdf-canvas"></canvas>
+            <canvas id="bounds-canvas"></canvas>
+        </div>
     </section>
         
     <script type="module" src="js/main.js"></script>
