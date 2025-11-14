@@ -126,6 +126,9 @@ async function onShowGroundings(entryId, fieldPath) {
         return
     }
     
+    // Show PDF viewer
+    document.querySelector('.pdf-viewer-container').style.display = 'block'
+    
     // Navigate to first grounding
     await navigateToGrounding(0)
     
