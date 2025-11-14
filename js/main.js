@@ -103,20 +103,33 @@ async function onShowGroundings(entryId, fieldPath) {
         return
     }
     
-    // Get the first grounding (can be enhanced to handle multiple)
-    const grounding = groundings[0]
+    // Group groundings by PDF URL and page
+    const groundingsByPdfAndPage = {}
+    groundings.forEach(g => {
+        if (!g.url) return
+        const key = `${g.url}|${g.pageNum}`
+        if (!groundingsByPdfAndPage[key]) {
+            groundingsByPdfAndPage[key] = []
+        }
+        groundingsByPdfAndPage[key].push(g)
+    })
     
-    if (!grounding.url) {
-        alert('No PDF URL found for this grounding')
+    // Get the first PDF/page combination
+    const firstKey = Object.keys(groundingsByPdfAndPage)[0]
+    if (!firstKey) {
+        alert('No valid PDF URL found for groundings')
         return
     }
     
+    const [pdfUrl, pageNum] = firstKey.split('|')
+    const groundingsOnPage = groundingsByPdfAndPage[firstKey]
+    
     // Check if we need to load a different PDF
-    if (pdfState.currentPdfUrl !== grounding.url) {
-        const result = await pdfService.loadPDF(grounding.url)
+    if (pdfState.currentPdfUrl !== pdfUrl) {
+        const result = await pdfService.loadPDF(pdfUrl)
         
         if (result.success) {
-            pdfState.currentPdfUrl = grounding.url
+            pdfState.currentPdfUrl = pdfUrl
             pdfState.totalPages = result.numPages
         } else {
             alert('Error loading PDF: ' + result.error)
@@ -124,24 +137,32 @@ async function onShowGroundings(entryId, fieldPath) {
         }
     }
     
-    // Navigate to the page with the grounding
-    pdfState.currentPageNum = grounding.pageNum
+    // Navigate to the page with the groundings
+    pdfState.currentPageNum = parseInt(pageNum)
     renderPageInfo()
     
-    // Clear and render page with the specific grounding highlighted
+    // Clear and render page with all groundings highlighted
     pdfService.clearBounds()
     await pdfService.renderPage(pdfState.currentPageNum)
     
-    // Draw the grounding bound with highlighting
-    pdfService.drawBounds(
-        [grounding.x1, grounding.y1, grounding.x2, grounding.y2],
-        {
-            strokeStyle: '#8191ecff',  // Green for grounding highlight
-            fillStyle: 'rgba(105, 163, 240, 0.25)',
-            // label: fieldPath,
-            lineWidth: 3
-        }
-    )
+    // Draw all grounding bounds on this page
+    groundingsOnPage.forEach((grounding, index) => {
+        pdfService.drawBounds(
+            [grounding.x1, grounding.y1, grounding.x2, grounding.y2],
+            {
+                strokeStyle: '#8191ecff',
+                fillStyle: 'rgba(105, 163, 240, 0.25)',
+                label: groundingsOnPage.length > 1 ? `${index + 1}` : '',
+                lineWidth: 3
+            }
+        )
+    })
+    
+    // Log info about other pages if there are groundings on multiple pages
+    const otherPages = Object.keys(groundingsByPdfAndPage).filter(k => k !== firstKey)
+    if (otherPages.length > 0) {
+        console.log(`Additional groundings found on pages: ${otherPages.map(k => k.split('|')[1]).join(', ')}`)
+    }
     
     // Scroll to PDF viewer
     document.querySelector('.pdf-viewer-container').scrollIntoView({ 
