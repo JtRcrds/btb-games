@@ -33,12 +33,22 @@
 
     <section class="pdf-viewer-container">
         <h2>PDF Viewer with Bounds</h2>
+        
+        <div class="grounding-navigation" style="display: none;">
+            <div class="grounding-info">
+                <strong>Field:</strong> <span id="grounding-field"></span>
+            </div>
+            <div class="grounding-controls">
+                <button id="prev-grounding-btn" onclick="app.onPrevGrounding()">◄ Previous Grounding</button>
+                <span id="grounding-info">Grounding: <span id="grounding-num">1</span> / <span id="grounding-count">-</span></span>
+                <button id="next-grounding-btn" onclick="app.onNextGrounding()">Next Grounding ►</button>
+            </div>
+        </div>
+        
         <div class="pdf-controls">
-            <button onclick="app.onLoadPDF()">Load PDF</button>
-            <button onclick="app.onPrevPage()">Previous</button>
+            <button onclick="app.onPrevPage()">◄ Previous Page</button>
             <span id="page-info">Page: <span id="page-num">1</span> / <span id="page-count">-</span></span>
-            <button onclick="app.onNextPage()">Next</button>
-            <button onclick="app.onAddBounds()">Add Bounds</button>
+            <button onclick="app.onNextPage()">Next Page ►</button>
         </div>
         <div class="canvas-wrapper">
             <canvas id="pdf-canvas"></canvas>

@@ -6,13 +6,22 @@ window.app = {
     onToggleTheme,
     onShowGroundings,
     onNextPage,
-    onPrevPage
+    onPrevPage,
+    onNextGrounding,
+    onPrevGrounding
 }
 
 const pdfState = {
     currentPageNum: 1,
     totalPages: 0,
     currentPdfUrl: null
+}
+
+const groundingNavigationState = {
+    entryId: null,
+    fieldPath: null,
+    allGroundings: [],
+    currentGroundingIndex: 0
 }
 
 
@@ -103,33 +112,40 @@ async function onShowGroundings(entryId, fieldPath) {
         return
     }
     
-    // Group groundings by PDF URL and page
-    const groundingsByPdfAndPage = {}
-    groundings.forEach(g => {
-        if (!g.url) return
-        const key = `${g.url}|${g.pageNum}`
-        if (!groundingsByPdfAndPage[key]) {
-            groundingsByPdfAndPage[key] = []
-        }
-        groundingsByPdfAndPage[key].push(g)
-    })
+    // Initialize navigation state
+    groundingNavigationState.entryId = entryId
+    groundingNavigationState.fieldPath = fieldPath
+    groundingNavigationState.allGroundings = groundings.filter(g => g.url) // Only valid groundings
+    groundingNavigationState.currentGroundingIndex = 0
     
-    // Get the first PDF/page combination
-    const firstKey = Object.keys(groundingsByPdfAndPage)[0]
-    if (!firstKey) {
+    if (groundingNavigationState.allGroundings.length === 0) {
         alert('No valid PDF URL found for groundings')
         return
     }
     
-    const [pdfUrl, pageNum] = firstKey.split('|')
-    const groundingsOnPage = groundingsByPdfAndPage[firstKey]
+    // Navigate to first grounding
+    await navigateToGrounding(0)
+    
+    // Update grounding navigation UI
+    updateGroundingNavigationUI()
+    
+    // Scroll to PDF viewer
+    document.querySelector('.pdf-viewer-container').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+    })
+}
+
+async function navigateToGrounding(index) {
+    const grounding = groundingNavigationState.allGroundings[index]
+    if (!grounding) return
     
     // Check if we need to load a different PDF
-    if (pdfState.currentPdfUrl !== pdfUrl) {
-        const result = await pdfService.loadPDF(pdfUrl)
+    if (pdfState.currentPdfUrl !== grounding.url) {
+        const result = await pdfService.loadPDF(grounding.url)
         
         if (result.success) {
-            pdfState.currentPdfUrl = pdfUrl
+            pdfState.currentPdfUrl = grounding.url
             pdfState.totalPages = result.numPages
         } else {
             alert('Error loading PDF: ' + result.error)
@@ -137,38 +153,72 @@ async function onShowGroundings(entryId, fieldPath) {
         }
     }
     
-    // Navigate to the page with the groundings
-    pdfState.currentPageNum = parseInt(pageNum)
+    // Navigate to the page with the grounding
+    pdfState.currentPageNum = grounding.pageNum
     renderPageInfo()
     
-    // Clear and render page with all groundings highlighted
+    // Clear and render page
     pdfService.clearBounds()
     await pdfService.renderPage(pdfState.currentPageNum)
     
-    // Draw all grounding bounds on this page
-    groundingsOnPage.forEach((grounding, index) => {
+    // Find all groundings on the current page
+    const groundingsOnThisPage = groundingNavigationState.allGroundings.filter(
+        g => g.url === grounding.url && g.pageNum === grounding.pageNum
+    )
+    
+    // Draw all groundings on this page
+    const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--grounding-highlight').trim()
+    const activeBgColor = getComputedStyle(document.documentElement).getPropertyValue('--grounding-highlight-bg').trim()
+    
+    groundingsOnThisPage.forEach(g => {
+        const isActive = g === grounding
         pdfService.drawBounds(
-            [grounding.x1, grounding.y1, grounding.x2, grounding.y2],
+            [g.x1, g.y1, g.x2, g.y2],
             {
-                strokeStyle: '#8191ecff',
-                fillStyle: 'rgba(105, 163, 240, 0.25)',
-                label: groundingsOnPage.length > 1 ? `${index + 1}` : '',
-                lineWidth: 3
+                strokeStyle: isActive ? activeColor : '#8191ecff',
+                fillStyle: isActive ? activeBgColor : 'rgba(105, 163, 240, 0.15)',
+                lineWidth: isActive ? 4 : 2
             }
         )
     })
-    
-    // Log info about other pages if there are groundings on multiple pages
-    const otherPages = Object.keys(groundingsByPdfAndPage).filter(k => k !== firstKey)
-    if (otherPages.length > 0) {
-        console.log(`Additional groundings found on pages: ${otherPages.map(k => k.split('|')[1]).join(', ')}`)
+}
+
+function onNextGrounding() {
+    if (groundingNavigationState.currentGroundingIndex < groundingNavigationState.allGroundings.length - 1) {
+        groundingNavigationState.currentGroundingIndex++
+        navigateToGrounding(groundingNavigationState.currentGroundingIndex)
+        updateGroundingNavigationUI()
     }
+}
+
+function onPrevGrounding() {
+    if (groundingNavigationState.currentGroundingIndex > 0) {
+        groundingNavigationState.currentGroundingIndex--
+        navigateToGrounding(groundingNavigationState.currentGroundingIndex)
+        updateGroundingNavigationUI()
+    }
+}
+
+function updateGroundingNavigationUI() {
+    const currentIdx = groundingNavigationState.currentGroundingIndex
+    const total = groundingNavigationState.allGroundings.length
     
-    // Scroll to PDF viewer
-    document.querySelector('.pdf-viewer-container').scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-    })
+    document.getElementById('grounding-num').textContent = currentIdx + 1
+    document.getElementById('grounding-count').textContent = total
+    document.getElementById('grounding-field').textContent = groundingNavigationState.fieldPath || ''
+    
+    // Enable/disable navigation buttons
+    const prevBtn = document.getElementById('prev-grounding-btn')
+    const nextBtn = document.getElementById('next-grounding-btn')
+    
+    if (prevBtn) prevBtn.disabled = currentIdx === 0
+    if (nextBtn) nextBtn.disabled = currentIdx === total - 1
+    
+    // Show/hide grounding navigation - only show if more than 1 grounding
+    const groundingNav = document.querySelector('.grounding-navigation')
+    if (groundingNav) {
+        groundingNav.style.display = total > 1 ? 'flex' : 'none'
+    }
 }
 
 

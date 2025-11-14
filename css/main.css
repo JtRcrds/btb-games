@@ -10,6 +10,8 @@
     --table-cell-text: #e0e0e0;
     --table-cell-text-highlite: gold;
     --table-header-border: #475569;
+    --grounding-highlight: #ff6b35;
+    --grounding-highlight-bg: rgba(255, 107, 53, 0.25);
 }
 
 :root.light-theme {
@@ -23,6 +25,8 @@
     --table-cell-bg: #ffffff;
     --table-cell-text: #2c3e50;
     --table-header-border: #34495e;
+    --grounding-highlight: #ff6b35;
+    --grounding-highlight-bg: rgba(255, 107, 53, 0.25);
 }
 
 body {
@@ -109,6 +113,71 @@ body {
     margin: 0 0 20px 0;
     color: var(--text-color);
     font-size: 20px;
+}
+
+.grounding-navigation {
+    background-color: var(--table-header-bg);
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border: 2px solid var(--table-header-border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.grounding-info {
+    color: var(--table-header-text);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.grounding-info strong {
+    color: var(--grounding-highlight);
+}
+
+.grounding-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.grounding-controls button {
+    padding: 8px 16px;
+    background-color: var(--grounding-highlight);
+    color: white;
+    border: 1px solid var(--grounding-highlight);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.grounding-controls button:hover:not(:disabled) {
+    opacity: 0.85;
+    transform: translateY(-1px);
+}
+
+.grounding-controls button:disabled {
+    background-color: #555;
+    border-color: #666;
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#grounding-info {
+    color: var(--table-header-text);
+    font-size: 14px;
+    font-weight: 600;
+    background-color: var(--grounding-highlight-bg);
+    padding: 6px 12px;
+    border-radius: 4px;
 }
 
 .pdf-controls {

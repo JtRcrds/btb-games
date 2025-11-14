@@ -118,7 +118,7 @@ const demoData = [
                     value: 19004,
                     groundings: [
                         {cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395},
-                        {cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 185, y2: 395}
+                        {cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395}
                     ]
                 }
             },
@@ -130,9 +130,9 @@ const demoData = [
                 end: {
                     value: 10125,
                     groundings: [
+                        {cFileId: 'cfile-101', pageNum: 2, x1: 70, y1: 400, x2: 220, y2: 425},
                         {cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360},
-                        {cFileId: 'cfile-101', pageNum: 2, x1: 0, y1: 10, x2: 10, y2: 20},
-                        {cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 180, y2: 360}
+                        {cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 192, y2: 360}
                     ]
                 }
             },
