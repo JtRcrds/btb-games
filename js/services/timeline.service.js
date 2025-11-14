@@ -141,14 +141,14 @@ const demoData = [
         part: {
             hours: {
                 value: 17682,
-                groundings: [{
-                    cFileId: 'cfile-101', pageNum: 3, x1: 200, y1: 200, x2: 300, y2: 300
+               groundings: [{
+                    cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395
                 }]
             },
             cycles: {
                 value: 9585,
-                groundings: [{
-                    cFileId: 'cfile-101', pageNum: 3, x1: 100, y1: 100, x2: 200, y2: 200
+                 groundings: [{
+                    cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 192, y2: 360
                 }]
             },
             totalHours: {
