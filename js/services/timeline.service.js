@@ -12,6 +12,9 @@ async function query() {
 const demoData = [
     {
         id: 'entry-101',
+        groundings: [{
+            cFileId: 'cfile-101', pageNum: 2, txt: 'Engine 577351 Installed'
+        }],
         dateRange: {
             start: {
                 value: '13-Jul-2005',
@@ -60,21 +63,22 @@ const demoData = [
         part: {
             hours: {
                 value: 1322,
-                groundings: [{
+            },
+            cycles: {
+                value: 540,
+                
+            },
+            totalHours: {
+                value: 1322,
+                 groundings: [{
                     cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395
                 }]
             },
-            cycles: {
+            totalCycles: {
                 value: 540,
                 groundings: [{
                     cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360
                 }]
-            },
-            totalHours: {
-                value: 1322,
-            },
-            totalCycles: {
-                value: 540,
             },
 
         },
@@ -117,8 +121,8 @@ const demoData = [
                 end: {
                     value: 19004,
                     groundings: [
-                        {cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395},
-                        {cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395}
+                        { cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395 },
+                        { cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395 }
                     ]
                 }
             },
@@ -130,9 +134,9 @@ const demoData = [
                 end: {
                     value: 10125,
                     groundings: [
-                        {cFileId: 'cfile-101', pageNum: 2, x1: 70, y1: 400, x2: 220, y2: 425},
-                        {cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360},
-                        {cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 192, y2: 360}
+                        { cFileId: 'cfile-101', pageNum: 2, x1: 70, y1: 400, x2: 220, y2: 425 },
+                        { cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360 },
+                        { cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 192, y2: 360 }
                     ]
                 }
             },
@@ -140,22 +144,22 @@ const demoData = [
         },
         part: {
             hours: {
-                value: 17682,
-               groundings: [{
-                    cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395
-                }]
+                value: 17682
             },
             cycles: {
-                value: 9585,
-                 groundings: [{
-                    cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 192, y2: 360
-                }]
+                value: 9585
             },
             totalHours: {
                 value: 19004,
+                groundings: [{
+                    cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395
+                }]
             },
             totalCycles: {
                 value: 10125,
+                groundings: [{
+                    cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 202, y2: 360
+                }]
             }
         },
         op: {

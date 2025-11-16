@@ -70,16 +70,13 @@ function renderEntries(entries) {
             <td>
                 ${entry.engine.totalCycleRange.start.value.toLocaleString()}
             </td>
-            <td class="cell-with-groundings" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="part.hours" onclick="app.onShowGroundings('${entry.id}', 'part.hours')">
-                ${entry.part.hours.value.toLocaleString()}
-            </td>
-            <td class="cell-with-groundings" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="part.cycles" onclick="app.onShowGroundings('${entry.id}', 'part.cycles')">
+            <td rowspan="2" data-entry-id="${entry.id}">
                 ${entry.part.cycles.value.toLocaleString()}
             </td>
-            <td rowspan="2">
+            <td rowspan="2" class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHours" onclick="app.onShowGroundings('${entry.id}', 'part.totalHours')">
                 ${entry.part.totalHours.value.toLocaleString()}
             </td>
-            <td rowspan="2">
+            <td rowspan="2" class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycles" onclick="app.onShowGroundings('${entry.id}', 'part.totalCycles')">
                 ${entry.part.totalCycles.value.toLocaleString()}
             </td>
             <td rowspan="2" tabindex="0" class="cell-with-groundings" data-entry-id="${entry.id}" data-field-path="op" onclick="app.onShowGroundings('${entry.id}', 'op')">
