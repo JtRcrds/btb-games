@@ -8,7 +8,10 @@ window.app = {
     onNextPage,
     onPrevPage,
     onNextGrounding,
-    onPrevGrounding
+    onPrevGrounding,
+    onRemoveEntry,
+    onSplitEntry,
+    onConfirmEntry,
 }
 
 const pdfState = {
@@ -28,73 +31,81 @@ const groundingNavigationState = {
 async function onInit() {
     // Load saved theme preference
     const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'light') {
-        document.documentElement.classList.add('light-theme')
+    if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark-theme')
     }
-
-    const entries = await timelineService.query()
-
-    renderEntries(entries)
-    
-    // Setup keyboard navigation
+    await renderEntries()    
     setupTableKeyboardNavigation()
 
 }
 
 function onToggleTheme() {
     const root = document.documentElement
-    root.classList.toggle('light-theme')
+    root.classList.toggle('dark-theme')
 
     // Save preference to localStorage
-    const isLight = root.classList.contains('light-theme')
-    localStorage.setItem('theme', isLight ? 'light' : 'dark')
+    const isDark = root.classList.contains('dark-theme')
+    localStorage.setItem('theme', isDark ? 'dark' : 'light')
 }
 
 
-function renderEntries(entries) {
+async function renderEntries() {
+    const entries = await timelineService.query()
     const strHTMLs = entries.map(entry => {
         return `
         <tr>
+            <td rowspan="2" tabindex="0" class="cell-with-groundings ${entry.op.state}" data-entry-id="${entry.id}" data-field-path="op" onclick="app.onShowGroundings('${entry.id}', 'op')">
+                ${entry.op.name} 
+                <button ${(entry.op.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'op')">✅</button>
+            </td>
             <td>
                 ON
             </td>
-            <td class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start" onclick="app.onShowGroundings('${entry.id}', 'dateRange.start')">
+            <td class="cell-with-groundings ${entry.dateRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start" onclick="app.onShowGroundings('${entry.id}', 'dateRange.start')">
                 ${entry.dateRange.start.value}
+                <button ${(entry.dateRange.start.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'dateRange.start')">✅</button>
             </td>
-            <td class="cell-with-groundings" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn" onclick="app.onShowGroundings('${entry.id}', 'engine.esn')">
+            <td class="cell-with-groundings ${entry.engine.esn.state}" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn" onclick="app.onShowGroundings('${entry.id}', 'engine.esn')">
                 ${entry.engine.esn.value}
-            </td>
-            <td>
-                ${entry.engine.totalHourRange.start.value.toLocaleString()}
+                <button ${(entry.engine.esn.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'engine.esn')">✅</button>
             </td>
             <td>
                 ${entry.engine.totalCycleRange.start.value.toLocaleString()}
             </td>
+            <td>
+                ${entry.engine.totalHourRange.start.value.toLocaleString()}
+            </td>
+            <td rowspan="2" class="cell-with-groundings ${entry.part.totalHours.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHours" onclick="app.onShowGroundings('${entry.id}', 'part.totalHours')">
+                ${entry.part.totalHours.value.toLocaleString()}
+                <button ${(entry.part.totalHours.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'part.totalHours')">✅</button>
+            </td>
+            <td rowspan="2" class="cell-with-groundings ${entry.part.totalCycles.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycles" onclick="app.onShowGroundings('${entry.id}', 'part.totalCycles')">
+                ${entry.part.totalCycles.value.toLocaleString()}
+                <button ${(entry.part.totalCycles.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'part.totalCycles')">✅</button>
+            </td>
             <td rowspan="2" data-entry-id="${entry.id}">
                 ${entry.part.cycles.value.toLocaleString()}
             </td>
-            <td rowspan="2" class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHours" onclick="app.onShowGroundings('${entry.id}', 'part.totalHours')">
-                ${entry.part.totalHours.value.toLocaleString()}
-            </td>
-            <td rowspan="2" class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycles" onclick="app.onShowGroundings('${entry.id}', 'part.totalCycles')">
-                ${entry.part.totalCycles.value.toLocaleString()}
-            </td>
-            <td rowspan="2" tabindex="0" class="cell-with-groundings" data-entry-id="${entry.id}" data-field-path="op" onclick="app.onShowGroundings('${entry.id}', 'op')">
-                ${entry.op.name}
+            <td rowspan="2" class="actions-cell">
+                <button onclick="app.onRemoveEntry('${entry.id}')">x</button>
+                <button onclick="app.onSplitEntry('${entry.id}')">Split</button>
             </td>
         </tr>    
         <tr>
             <td>
                 OFF
             </td>
-            <td class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end" onclick="app.onShowGroundings('${entry.id}', 'dateRange.end')">
+            <td class="cell-with-groundings ${entry.dateRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end" onclick="app.onShowGroundings('${entry.id}', 'dateRange.end')">
                ${entry.dateRange.end.value}
+               <button ${(entry.dateRange.end.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'dateRange.end')">✅</button>
             </td>
-            <td class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end" onclick="app.onShowGroundings('${entry.id}', 'engine.totalHourRange.end')">
+            <td class="cell-with-groundings ${entry.engine.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end" onclick="app.onShowGroundings('${entry.id}', 'engine.totalHourRange.end')">
                 ${entry.engine.totalHourRange.end.value.toLocaleString()}
+                <button ${(entry.engine.totalHourRange.end.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'engine.totalHourRange.end')">✅</button>
             </td>
-            <td class="cell-with-groundings" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end" onclick="app.onShowGroundings('${entry.id}', 'engine.totalCycleRange.end')">
+            <td class="cell-with-groundings ${entry.engine.totalCycleRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end" onclick="app.onShowGroundings('${entry.id}', 'engine.totalCycleRange.end')">
                 ${entry.engine.totalCycleRange.end.value.toLocaleString()}
+                <button ${(entry.engine.totalCycleRange.end.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'engine.totalCycleRange.end')">✅</button>
             </td>
         </tr>    
     `})
@@ -102,6 +113,13 @@ function renderEntries(entries) {
     document.querySelector('.timeline-table tbody').innerHTML = strHTMLs.join('')
 
 }
+
+function getClassNameForEntry(entry) {
+    const classNames = []
+    classNames.push(entry.state)
+    return classNames.join(' ')
+}
+
 
 async function onShowGroundings(entryId, fieldPath) {
     const groundings = timelineService.getGroundings(entryId, fieldPath)
@@ -319,4 +337,31 @@ function setupTableKeyboardNavigation() {
             nextCell.focus()
         }
     })
+}
+
+function onRemoveEntry(entryId) {
+    if (!confirm('Are you sure you want to remove this entry?')) return
+    if (timelineService.remove(entryId)) {
+        renderEntries()
+    } else {
+        alert('Failed to remove entry with ID: ' + entryId)
+    }
+}   
+
+function onSplitEntry(entryId) {
+    if (!confirm('Are you sure you want to split this entry?')) return
+    if (timelineService.split(entryId)) {
+        renderEntries()
+    } else {
+        alert('Failed to split entry with ID: ' + entryId)
+    }
+}   
+
+function onConfirmEntry(ev, entryId, fieldPath) {
+    ev.stopPropagation()
+    if (timelineService.confirm(entryId, fieldPath)) {
+        renderEntries()
+    } else {
+        alert('Failed to confirm entry with ID: ' + entryId)
+    }
 }

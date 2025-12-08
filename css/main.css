@@ -1,5 +1,21 @@
 :root {
-    /* Dark theme (default) */
+    /* Light theme */
+    --bg-color: #f5f5f5;
+    --text-color: #2c3e50;
+    --table-bg: #ffffff;
+    --table-border: #d0d0d0;
+    --table-header-bg: #2c3e50;
+    --table-header-text: #ffffff;
+    --table-cell-bg: #ffffff;
+    --table-cell-text: #2c3e50;
+    --table-header-border: #34495e;
+    --grounding-highlight: #ff6b35;
+    --grounding-highlight-bg: rgba(255, 107, 53, 0.25);
+}
+ 
+
+:root.dark-theme {
+   /* Dark theme (default) */
     --bg-color: #1a1a1a;
     --text-color: #e0e0e0;
     --table-bg: #2a2a2a;
@@ -14,21 +30,6 @@
     --grounding-highlight-bg: rgba(255, 107, 53, 0.25);
 }
 
-:root.light-theme {
-    /* Light theme */
-    --bg-color: #f5f5f5;
-    --text-color: #2c3e50;
-    --table-bg: #ffffff;
-    --table-border: #d0d0d0;
-    --table-header-bg: #2c3e50;
-    --table-header-text: #ffffff;
-    --table-cell-bg: #ffffff;
-    --table-cell-text: #2c3e50;
-    --table-header-border: #34495e;
-    --grounding-highlight: #ff6b35;
-    --grounding-highlight-bg: rgba(255, 107, 53, 0.25);
-}
-
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -36,6 +37,10 @@ body {
     padding: 20px;
     margin: 0;
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button {
+    cursor: pointer;
 }
 
 .theme-toggle {
@@ -109,6 +114,24 @@ body {
 .timeline-table .cell-with-groundings:focus-visible {
     outline: 2px solid var(--grounding-highlight);
     outline-offset: -2px;
+}
+
+.timeline-table td.draft {
+    background-color: #ddd;
+}
+
+.timeline-table td:not(.actions-cell) button {
+    border: 0;
+    background-color: transparent;
+    float: right;
+}
+
+.timeline-table td.error {
+    border-color: red;
+}
+
+.timeline-table td.warning {
+    border-color: yellow;
 }
 
 /* PDF Viewer Styles */
