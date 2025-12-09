@@ -60,18 +60,11 @@ function getCellButtons(entry, fieldPath, fieldValue) {
     const isConfirmed = field?.state === 'confirmed'
     const hasEdits = field?.edits && field.edits.length > 0
     
-    // Build edit history tooltip
-    let editTooltip = 'This field has been edited'
-    if (hasEdits) {
-        const editHistory = field.edits.map((edit, index) => {
-            const date = new Date(edit.at).toLocaleString()
-            return `Edit ${index + 1}: ${edit.from} → ${edit.to} (by ${edit.by} at ${date})`
-        }).join('\n')
-        editTooltip = `Edit History:\n${editHistory}`
-    }
+    const popoverId = `edit-popover-${entry.id}-${fieldPath.replace(/\./g, '-')}`
+    const anchorId = `anchor-${entry.id}-${fieldPath.replace(/\./g, '-')}`
     
     return `
-        ${hasEdits ? `<span class="edit-indicator" title="${editTooltip}"><i data-lucide="file-edit"></i></span>` : ''}
+        ${hasEdits ? `<button id="${anchorId}" class="edit-indicator" popovertarget="${popoverId}" type="button"><i data-lucide="file-edit"></i></button>` : ''}
         <button title="${isConfirmed ? 'Unconfirm' : 'Confirm'}" onclick="app.onConfirmCell(event, '${entry.id}', '${fieldPath}')">
             <i data-lucide="${isConfirmed ? 'book-open-check' : 'book-check'}"></i>
         </button>
@@ -84,8 +77,43 @@ function getCellButtons(entry, fieldPath, fieldValue) {
     `.trim()
 }
 
+function createEditPopover(entry, fieldPath) {
+    const field = fieldPath.split('.').reduce((obj, key) => obj?.[key], entry)
+    const hasEdits = field?.edits && field.edits.length > 0
+    
+    if (!hasEdits) return ''
+    
+    const popoverId = `edit-popover-${entry.id}-${fieldPath.replace(/\./g, '-')}`
+    const anchorId = `anchor-${entry.id}-${fieldPath.replace(/\./g, '-')}`
+    const editHistoryItems = field.edits.map((edit, index) => {
+        const date = new Date(edit.at).toLocaleString()
+        return `<div class="edit-history-item">Edit ${index + 1}: ${edit.from} → ${edit.to} (by ${edit.by} at ${date})</div>`
+    }).join('')
+    
+    return `<div id="${popoverId}" popover anchor="${anchorId}" class="edit-history-popover"><div class="edit-history-header">Edit History:</div>${editHistoryItems}</div>`
+}
+
 async function renderEntries() {
     const entries = await timelineService.query()
+    
+    // Remove old popovers
+    document.querySelectorAll('.edit-history-popover').forEach(el => el.remove())
+    
+    // Collect all popovers
+    const allPopovers = []
+    const fieldPaths = ['op', 'dateRange.start', 'dateRange.end', 'engine.esn', 
+                        'engine.totalCycleRange.start', 'engine.totalCycleRange.end',
+                        'engine.totalHourRange.start', 'engine.totalHourRange.end',
+                        'part.totalHourRange.start', 'part.totalHourRange.end',
+                        'part.totalCycleRange.start', 'part.totalCycleRange.end']
+    
+    entries.forEach(entry => {
+        fieldPaths.forEach(fieldPath => {
+            const popover = createEditPopover(entry, fieldPath)
+            if (popover) allPopovers.push(popover)
+        })
+    })
+    
     const strHTMLs = entries.map(entry => {
         return `
         <tr>
@@ -163,8 +191,35 @@ async function renderEntries() {
     `})
 
     document.querySelector('.timeline-table tbody').innerHTML = strHTMLs.join('')
+    
+    // Append all popovers to body
+    if (allPopovers.length > 0) {
+        document.body.insertAdjacentHTML('beforeend', allPopovers.join(''))
+    }
+    
     lucide.createIcons()
+    
+    // Setup popover positioning
+    setupPopoverPositioning()
 
+}
+
+function setupPopoverPositioning() {
+    document.querySelectorAll('[popovertarget]').forEach(trigger => {
+        const popoverId = trigger.getAttribute('popovertarget')
+        const popover = document.getElementById(popoverId)
+        
+        if (popover) {
+            popover.addEventListener('toggle', (e) => {
+                if (e.newState === 'open') {
+                    const rect = trigger.getBoundingClientRect()
+                    popover.style.position = 'absolute'
+                    popover.style.top = `${rect.bottom + window.scrollY + 5}px`
+                    popover.style.left = `${rect.left + window.scrollX}px`
+                }
+            })
+        }
+    })
 }
 
 async function onShowGroundings(ev, entryId, fieldPath) {

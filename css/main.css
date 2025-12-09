@@ -158,11 +158,47 @@ button {
     color: #ff9800;
     margin-right: 4px;
     opacity: 1;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    padding: 0;
+    anchor-name: --edit-indicator;
 }
 
 .timeline-table .edit-indicator svg {
     width: 16px;
     height: 16px;
+}
+
+/* Edit History Popover Styles */
+.edit-history-popover {
+    background-color: var(--table-bg);
+    color: var(--text-color);
+    border: 1px solid var(--table-border);
+    border-radius: 6px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    font-size: 13px;
+    margin: 0;
+}
+
+.edit-history-header {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--table-border);
+    padding-bottom: 6px;
+}
+
+.edit-history-item {
+    padding: 6px 0;
+    line-height: 1.4;
+    color: var(--text-color);
+}
+
+.edit-history-item:not(:last-child) {
+    border-bottom: 1px solid var(--table-border);
 }
 
 .timeline-table td.error {
