@@ -153,6 +153,18 @@ button {
     height: 14px;
 }
 
+.timeline-table .edit-indicator {
+    float: right;
+    color: #ff9800;
+    margin-right: 4px;
+    opacity: 1;
+}
+
+.timeline-table .edit-indicator svg {
+    width: 16px;
+    height: 16px;
+}
+
 .timeline-table td.error {
     border-color: red;
 }
@@ -393,4 +405,10 @@ button {
     .timeline-table td {
         padding: 6px 8px;
     }
+}
+
+
+.btn-sign {
+    margin: 1em;
+    font-size: 1.2em;
 }

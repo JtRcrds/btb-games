@@ -12,7 +12,8 @@ window.app = {
     onRemoveEntry,
     onConfirmCell,
     onEditCell,
-    onAddEntry
+    onAddEntry,
+    onSignOff
 }
 
 const pdfState = {
@@ -56,8 +57,20 @@ function onToggleTheme() {
 function getCellButtons(entry, fieldPath, fieldValue) {
     const field = fieldPath.split('.').reduce((obj, key) => obj?.[key], entry)
     const isConfirmed = field?.state === 'confirmed'
+    const hasEdits = field?.edits && field.edits.length > 0
+    
+    // Build edit history tooltip
+    let editTooltip = 'This field has been edited'
+    if (hasEdits) {
+        const editHistory = field.edits.map((edit, index) => {
+            const date = new Date(edit.at).toLocaleString()
+            return `Edit ${index + 1}: ${edit.from} → ${edit.to} (by ${edit.by} at ${date})`
+        }).join('\n')
+        editTooltip = `Edit History:\n${editHistory}`
+    }
     
     return `
+        ${hasEdits ? `<span class="edit-indicator" title="${editTooltip}"><i data-lucide="file-edit"></i></span>` : ''}
         <button title="${isConfirmed ? 'Unconfirm' : 'Confirm'}" onclick="app.onConfirmCell(event, '${entry.id}', '${fieldPath}')">
             <i data-lucide="${isConfirmed ? 'book-open-check' : 'book-check'}"></i>
         </button>
@@ -374,19 +387,25 @@ function setupTableKeyboardNavigation() {
     })
 }
 
-function onRemoveEntry(entryId) {
+async function onRemoveEntry(entryId) {
     if (!confirm('Are you sure you want to remove this entry?')) return
     if (timelineService.remove(entryId)) {
-        renderEntries()
+        await renderEntries()
     } else {
         alert('Failed to remove entry with ID: ' + entryId)
     }
 }
 
-function onConfirmCell(ev, entryId, fieldPath) {
+async function onConfirmCell(ev, entryId, fieldPath) {
     ev.stopPropagation()
     if (timelineService.toggleConfirm(entryId, fieldPath)) {
-        renderEntries()
+        await renderEntries()
+        if (document.querySelectorAll('td.draft').length === 0) {
+            alert('All entries confirmed!')
+            document.querySelector('.btn-sign').disabled = false
+        } else {
+            document.querySelector('.btn-sign').disabled = true
+        }
     } else {
         alert('Failed to toggle confirm entry with ID: ' + entryId)
     }
@@ -423,8 +442,14 @@ function onEditCell(event, entryId, fieldPath, currentValue) {
     input.focus()
     input.select()
 
+    // Track if we're already saving to prevent double-save
+    let isSaving = false
+
     // Save function
     const save = async () => {
+        if (isSaving) return
+        isSaving = true
+
         let newValue = input.value.trim()
 
         // Validate and convert value
@@ -433,6 +458,7 @@ function onEditCell(event, entryId, fieldPath, currentValue) {
             if (isNaN(newValue)) {
                 alert('Please enter a valid number')
                 input.focus()
+                isSaving = false
                 return
             }
         }
@@ -463,9 +489,11 @@ function onEditCell(event, entryId, fieldPath, currentValue) {
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault()
+            input.removeEventListener('blur', save)
             save()
         } else if (e.key === 'Escape') {
             e.preventDefault()
+            input.removeEventListener('blur', save)
             cancel()
         }
     })
@@ -538,4 +566,8 @@ function setupAddEntryForm() {
         document.getElementById('add-entry-dialog').close()
         form.reset()
     })
+}
+
+function onSignOff() {
+    alert('Signing off...')
 }
