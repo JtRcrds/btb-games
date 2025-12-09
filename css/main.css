@@ -126,6 +126,11 @@ button {
     float: right;
 }
 
+.timeline-table td:not(.actions-cell) button svg {
+    width: 14px;
+    height: 14px;
+}
+
 .timeline-table td.error {
     border-color: red;
 }

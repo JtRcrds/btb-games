@@ -11,7 +11,8 @@ window.app = {
     onPrevGrounding,
     onRemoveEntry,
     onSplitEntry,
-    onConfirmEntry,
+    onConfirmCell,
+    onEditCell,
 }
 
 const pdfState = {
@@ -29,12 +30,15 @@ const groundingNavigationState = {
 
 
 async function onInit() {
+    setTimeout(() => {
+        lucide.createIcons()
+    }, 1000)
     // Load saved theme preference
     const savedTheme = localStorage.getItem('theme')
     if (savedTheme === 'dark') {
         document.documentElement.classList.add('dark-theme')
     }
-    await renderEntries()    
+    await renderEntries()
     setupTableKeyboardNavigation()
 
 }
@@ -49,39 +53,59 @@ function onToggleTheme() {
 }
 
 
+function getCellButtons(entry, fieldPath, fieldValue) {
+    const field = fieldPath.split('.').reduce((obj, key) => obj?.[key], entry)
+    const isConfirmed = field?.state === 'confirmed'
+    
+    return `
+        <button title="${isConfirmed ? 'Unconfirm' : 'Confirm'}" onclick="app.onConfirmCell(event, '${entry.id}', '${fieldPath}')">
+            <i data-lucide="${isConfirmed ? 'book-open-check' : 'book-check'}"></i>
+        </button>
+        <button title="Show Groundings" onclick="app.onShowGroundings(event, '${entry.id}', '${fieldPath}')">
+            <i data-lucide="eye"></i>
+        </button>
+        <button title="Edit" ${isConfirmed ? 'hidden' : ''} onclick="app.onEditCell(event, '${entry.id}', '${fieldPath}${fieldValue !== undefined ? '' : '.value'}', ${typeof fieldValue === 'string' ? `'${fieldValue}'` : fieldValue})">
+            <i data-lucide="pencil"></i>
+        </button>
+    `.trim()
+}
+
 async function renderEntries() {
     const entries = await timelineService.query()
     const strHTMLs = entries.map(entry => {
         return `
         <tr>
-            <td rowspan="2" tabindex="0" class="cell-with-groundings ${entry.op.state}" data-entry-id="${entry.id}" data-field-path="op" onclick="app.onShowGroundings('${entry.id}', 'op')">
-                ${entry.op.name} 
-                <button ${(entry.op.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'op')">✅</button>
+            <td rowspan="2" tabindex="0" class="cell-with-groundings ${entry.op.state}" data-entry-id="${entry.id}" data-field-path="op">
+                ${entry.op.value}
+                ${getCellButtons(entry, 'op', entry.op.value)}
             </td>
             <td>
                 ON
             </td>
-            <td class="cell-with-groundings ${entry.dateRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start" onclick="app.onShowGroundings('${entry.id}', 'dateRange.start')">
+            <td class="cell-with-groundings ${entry.dateRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start">
                 ${entry.dateRange.start.value}
-                <button ${(entry.dateRange.start.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'dateRange.start')">✅</button>
+                ${getCellButtons(entry, 'dateRange.start', entry.dateRange.start.value)}
             </td>
-            <td class="cell-with-groundings ${entry.engine.esn.state}" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn" onclick="app.onShowGroundings('${entry.id}', 'engine.esn')">
+            <td class="cell-with-groundings ${entry.engine.esn.state}" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn">
                 ${entry.engine.esn.value}
-                <button ${(entry.engine.esn.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'engine.esn')">✅</button>
+                ${getCellButtons(entry, 'engine.esn', entry.engine.esn.value)}
             </td>
-            <td>
+            <td class="cell-with-groundings ${entry.engine.totalCycleRange.start.state}" tabindex="0">
                 ${entry.engine.totalCycleRange.start.value.toLocaleString()}
+                ${getCellButtons(entry, 'engine.totalCycleRange.start', entry.engine.totalCycleRange.start.value)}
+        
             </td>
-            <td>
+            <td class="cell-with-groundings ${entry.engine.totalHourRange.start.state}" tabindex="0">
                 ${entry.engine.totalHourRange.start.value.toLocaleString()}
+                ${getCellButtons(entry, 'engine.totalHourRange.start', entry.engine.totalHourRange.start.value)}
             </td>
-            <td rowspan="2" class="cell-with-groundings ${entry.part.totalHours.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHours" onclick="app.onShowGroundings('${entry.id}', 'part.totalHours')">
+            <td rowspan="2" class="cell-with-groundings ${entry.part.totalHours.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHours">
                 ${entry.part.totalHours.value.toLocaleString()}
-                <button ${(entry.part.totalHours.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'part.totalHours')">✅</button>
+                ${getCellButtons(entry, 'part.totalHours', entry.part.totalHours.value)}
             </td>
-            <td rowspan="2" class="cell-with-groundings ${entry.part.totalCycles.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycles" onclick="app.onShowGroundings('${entry.id}', 'part.totalCycles')">
+            <td rowspan="2" class="cell-with-groundings ${entry.part.totalCycles.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycles">
                 ${entry.part.totalCycles.value.toLocaleString()}
-                <button ${(entry.part.totalCycles.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'part.totalCycles')">✅</button>
+                ${getCellButtons(entry, 'part.totalCycles', entry.part.totalCycles.value)}
             </td>
             <td rowspan="2" data-entry-id="${entry.id}">
                 ${entry.part.cycles.value.toLocaleString()}
@@ -95,76 +119,77 @@ async function renderEntries() {
             <td>
                 OFF
             </td>
-            <td class="cell-with-groundings ${entry.dateRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end" onclick="app.onShowGroundings('${entry.id}', 'dateRange.end')">
+            <td class="cell-with-groundings ${entry.dateRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end">
                ${entry.dateRange.end.value}
-               <button ${(entry.dateRange.end.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'dateRange.end')">✅</button>
+               ${getCellButtons(entry, 'dateRange.end', entry.dateRange.end.value)}
             </td>
-            <td class="cell-with-groundings ${entry.engine.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end" onclick="app.onShowGroundings('${entry.id}', 'engine.totalHourRange.end')">
-                ${entry.engine.totalHourRange.end.value.toLocaleString()}
-                <button ${(entry.engine.totalHourRange.end.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'engine.totalHourRange.end')">✅</button>
-            </td>
-            <td class="cell-with-groundings ${entry.engine.totalCycleRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end" onclick="app.onShowGroundings('${entry.id}', 'engine.totalCycleRange.end')">
+            <td class="cell-with-groundings ${entry.engine.totalCycleRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end">
                 ${entry.engine.totalCycleRange.end.value.toLocaleString()}
-                <button ${(entry.engine.totalCycleRange.end.state === 'confirmed')? 'hidden' : ''} onclick="app.onConfirmEntry(event, '${entry.id}', 'engine.totalCycleRange.end')">✅</button>
+                ${getCellButtons(entry, 'engine.totalCycleRange.end', entry.engine.totalCycleRange.end.value)}
+            </td>            
+            <td class="cell-with-groundings ${entry.engine.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end">
+                ${entry.engine.totalHourRange.end.value.toLocaleString()}
+                ${getCellButtons(entry, 'engine.totalHourRange.end', entry.engine.totalHourRange.end.value)}
             </td>
+           
         </tr>    
+        <tr><td colspan="10"><hr></td></tr>  
     `})
 
     document.querySelector('.timeline-table tbody').innerHTML = strHTMLs.join('')
+    lucide.createIcons()
 
 }
 
-function getClassNameForEntry(entry) {
-    const classNames = []
-    classNames.push(entry.state)
-    return classNames.join(' ')
-}
+async function onShowGroundings(ev, entryId, fieldPath) {
 
+    if (ev) {
+        ev.target.closest('td').focus()
+    }
 
-async function onShowGroundings(entryId, fieldPath) {
     const groundings = timelineService.getGroundings(entryId, fieldPath)
     console.log('Groundings for', entryId, fieldPath, groundings)
-    
+
     if (!groundings || groundings.length === 0) {
         alert('No groundings found for this field')
         return
     }
-    
+
     // Initialize navigation state
     groundingNavigationState.entryId = entryId
     groundingNavigationState.fieldPath = fieldPath
     groundingNavigationState.allGroundings = groundings.filter(g => g.url) // Only valid groundings
     groundingNavigationState.currentGroundingIndex = 0
-    
+
     if (groundingNavigationState.allGroundings.length === 0) {
         alert('No valid PDF URL found for groundings')
         return
     }
-    
+
     // Show PDF viewer
     document.querySelector('.pdf-viewer-container').style.display = 'block'
-    
+
     // Navigate to first grounding
     await navigateToGrounding(0)
-    
+
     // Update grounding navigation UI
     updateGroundingNavigationUI()
-    
+
     // Scroll to PDF viewer
-    document.querySelector('.pdf-viewer-container').scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
+    document.querySelector('.pdf-viewer-container').scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
     })
 }
 
 async function navigateToGrounding(index) {
     const grounding = groundingNavigationState.allGroundings[index]
     if (!grounding) return
-    
+
     // Check if we need to load a different PDF
     if (pdfState.currentPdfUrl !== grounding.url) {
         const result = await pdfService.loadPDF(grounding.url)
-        
+
         if (result.success) {
             pdfState.currentPdfUrl = grounding.url
             pdfState.totalPages = result.numPages
@@ -173,24 +198,24 @@ async function navigateToGrounding(index) {
             return
         }
     }
-    
+
     // Navigate to the page with the grounding
     pdfState.currentPageNum = grounding.pageNum
     renderPageInfo()
-    
+
     // Clear and render page
     pdfService.clearBounds()
     await pdfService.renderPage(pdfState.currentPageNum)
-    
+
     // Find all groundings on the current page
     const groundingsOnThisPage = groundingNavigationState.allGroundings.filter(
         g => g.url === grounding.url && g.pageNum === grounding.pageNum
     )
-    
+
     // Draw all groundings on this page
     const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--grounding-highlight').trim()
     const activeBgColor = getComputedStyle(document.documentElement).getPropertyValue('--grounding-highlight-bg').trim()
-    
+
     groundingsOnThisPage.forEach(g => {
         const isActive = g === grounding
         pdfService.drawBounds(
@@ -223,18 +248,18 @@ function onPrevGrounding() {
 function updateGroundingNavigationUI() {
     const currentIdx = groundingNavigationState.currentGroundingIndex
     const total = groundingNavigationState.allGroundings.length
-    
+
     document.getElementById('grounding-num').textContent = currentIdx + 1
     document.getElementById('grounding-count').textContent = total
     document.getElementById('grounding-field').textContent = groundingNavigationState.fieldPath || ''
-    
+
     // Enable/disable navigation buttons
     const prevBtn = document.getElementById('prev-grounding-btn')
     const nextBtn = document.getElementById('next-grounding-btn')
-    
+
     if (prevBtn) prevBtn.disabled = currentIdx === 0
     if (nextBtn) nextBtn.disabled = currentIdx === total - 1
-    
+
     // Show/hide grounding navigation - only show if more than 1 grounding
     const groundingNav = document.querySelector('.grounding-navigation')
     if (groundingNav) {
@@ -247,7 +272,7 @@ function updateGroundingNavigationUI() {
 async function renderCurrentPage() {
     pdfService.clearBounds()
     await pdfService.renderPage(pdfState.currentPageNum)
-    
+
 }
 
 function onNextPage() {
@@ -273,40 +298,40 @@ function renderPageInfo() {
 
 function setupTableKeyboardNavigation() {
     const table = document.querySelector('.timeline-table')
-    
+
     table.addEventListener('keydown', (e) => {
         const activeCell = document.activeElement
-        
+
         // Only handle if we're focused on a cell with groundings
         if (!activeCell.classList.contains('cell-with-groundings')) {
             return
         }
-        
+
         // Enter or Space: Trigger grounding
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
             const entryId = activeCell.dataset.entryId
             const fieldPath = activeCell.dataset.fieldPath
             if (entryId && fieldPath) {
-                onShowGroundings(entryId, fieldPath)
+                onShowGroundings(null, entryId, fieldPath)
             }
             return
         }
-        
+
         // Arrow keys: Navigate
         if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
             return
         }
-        
+
         e.preventDefault()
-        
+
         const allCells = Array.from(table.querySelectorAll('.cell-with-groundings[tabindex="0"]'))
         const currentIndex = allCells.indexOf(activeCell)
-        
+
         if (currentIndex === -1) return
-        
+
         let nextCell = null
-        
+
         switch (e.key) {
             case 'ArrowRight':
                 nextCell = allCells[currentIndex + 1]
@@ -332,7 +357,7 @@ function setupTableKeyboardNavigation() {
                 }
                 break
         }
-        
+
         if (nextCell) {
             nextCell.focus()
         }
@@ -346,7 +371,7 @@ function onRemoveEntry(entryId) {
     } else {
         alert('Failed to remove entry with ID: ' + entryId)
     }
-}   
+}
 
 function onSplitEntry(entryId) {
     if (!confirm('Are you sure you want to split this entry?')) return
@@ -355,13 +380,92 @@ function onSplitEntry(entryId) {
     } else {
         alert('Failed to split entry with ID: ' + entryId)
     }
-}   
+}
 
-function onConfirmEntry(ev, entryId, fieldPath) {
+function onConfirmCell(ev, entryId, fieldPath) {
     ev.stopPropagation()
-    if (timelineService.confirm(entryId, fieldPath)) {
+    if (timelineService.toggleConfirm(entryId, fieldPath)) {
         renderEntries()
     } else {
-        alert('Failed to confirm entry with ID: ' + entryId)
+        alert('Failed to toggle confirm entry with ID: ' + entryId)
     }
+}
+
+function onEditCell(event, entryId, fieldPath, currentValue) {
+    event.stopPropagation()
+    
+
+    const cell = event.target.closest('td')
+    if (!cell) return
+
+    // Prevent multiple edits
+    if (cell.querySelector('input')) return
+
+    // Store original content
+    const originalContent = cell.innerHTML
+
+    // Determine if this is a numeric field
+    const isNumeric = typeof currentValue === 'number'
+
+    // Create input element
+    const input = document.createElement('input')
+    input.type = isNumeric ? 'number' : 'text'
+    input.value = currentValue
+    input.className = 'cell-edit-input'
+
+    // Clear cell and add input
+    cell.innerHTML = ''
+    cell.appendChild(input)
+    cell.classList.add('cell-editing')
+
+    // Focus and select all
+    input.focus()
+    input.select()
+
+    // Save function
+    const save = async () => {
+        let newValue = input.value.trim()
+
+        // Validate and convert value
+        if (isNumeric) {
+            newValue = parseFloat(newValue)
+            if (isNaN(newValue)) {
+                alert('Please enter a valid number')
+                input.focus()
+                return
+            }
+        }
+
+        // Check if value changed
+        if (newValue === currentValue || (isNumeric && newValue === currentValue)) {
+            cancel()
+            return
+        }
+
+        // Update value in service
+        if (timelineService.updateFieldValue(entryId, fieldPath, newValue)) {
+            await renderEntries()
+        } else {
+            alert('Failed to update field')
+            cancel()
+        }
+    }
+
+    // Cancel function
+    const cancel = () => {
+        cell.classList.remove('cell-editing')
+        cell.innerHTML = originalContent
+    }
+
+    // Event listeners
+    input.addEventListener('blur', save)
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            save()
+        } else if (e.key === 'Escape') {
+            e.preventDefault()
+            cancel()
+        }
+    })
 }
