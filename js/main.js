@@ -12,6 +12,7 @@ window.app = {
     onRemoveEntry,
     onConfirmCell,
     onEditCell,
+    onUndoEdit,
     onAddEntry,
     onDownloadCSV,
     onSignOff
@@ -87,7 +88,12 @@ function createEditPopover(entry, fieldPath) {
     const anchorId = `anchor-${entry.id}-${fieldPath.replace(/\./g, '-')}`
     const editHistoryItems = field.edits.map((edit, index) => {
         const date = new Date(edit.at).toLocaleString()
-        return `<div class="edit-history-item">Edit ${index + 1}: ${edit.from} → ${edit.to} (by ${edit.by} at ${date})</div>`
+        return `<div class="edit-history-item">
+            <div class="edit-history-text">Edit ${index + 1}: ${edit.from} → ${edit.to} (by ${edit.by} at ${date})</div>
+            <button class="edit-undo-btn" onclick="app.onUndoEdit(event, '${entry.id}', '${fieldPath}', ${index})" title="Undo this edit">
+                <i data-lucide="undo"></i>
+            </button>
+        </div>`
     }).join('')
     
     return `<div id="${popoverId}" popover anchor="${anchorId}" class="edit-history-popover"><div class="edit-history-header">Edit History:</div>${editHistoryItems}</div>`
@@ -451,6 +457,23 @@ async function onRemoveEntry(entryId) {
         await renderEntries()
     } else {
         alert('Failed to remove entry with ID: ' + entryId)
+    }
+}
+
+async function onUndoEdit(event, entryId, fieldPath, editIndex) {
+    event.stopPropagation()
+    
+    if (timelineService.undoEdit(entryId, fieldPath, editIndex)) {
+        await renderEntries()
+        
+        // Close the popover after undo
+        const popoverId = `edit-popover-${entryId}-${fieldPath.replace(/\./g, '-')}`
+        const popover = document.getElementById(popoverId)
+        if (popover) {
+            popover.hidePopover()
+        }
+    } else {
+        alert('Failed to undo edit')
     }
 }
 

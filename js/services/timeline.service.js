@@ -4,6 +4,7 @@ export const timelineService = {
     toggleConfirm,
     getGroundings,
     updateFieldValue,
+    undoEdit,
     addEntry,
     getAsCSV
 }
@@ -374,6 +375,44 @@ function updateFieldValue(entryId, fieldPath, newValue) {
     } else {
         // Direct property update
         field[lastProperty] = newValue
+    }
+    
+    return true
+}
+
+function undoEdit(entryId, fieldPath, editIndex) {
+    const entry = demoData.find(entry => entry.id === entryId)
+    if (!entry) return false
+    if (!fieldPath) return false
+    
+    const fieldPaths = fieldPath.split('.')
+    let field = entry
+    
+    // Navigate to the target field
+    for (let i = 0; i < fieldPaths.length; i++) {
+        field = field[fieldPaths[i]]
+        if (!field) return false
+    }
+    
+    // Check if field has edits
+    if (!field.edits || field.edits.length === 0 || editIndex >= field.edits.length) {
+        return false
+    }
+    
+    // Get the edit to undo
+    const editToUndo = field.edits[editIndex]
+    
+    // Restore the old value
+    field.value = editToUndo.from
+    
+    // Remove all edits from this index onwards (undoing this and later edits)
+    field.edits.splice(editIndex)
+    
+    // If no more edits and was confirmed, restore confirmed state
+    // Otherwise keep as draft
+    if (field.edits.length === 0 && field.state === cellState.draft) {
+        // Optionally restore to confirmed if this was the only edit
+        // field.state = cellState.confirmed
     }
     
     return true

@@ -195,6 +195,36 @@ button {
     padding: 6px 0;
     line-height: 1.4;
     color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.edit-history-text {
+    flex: 1;
+}
+
+.edit-undo-btn {
+    background: transparent;
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    padding: 4px 6px;
+    cursor: pointer;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.edit-undo-btn:hover {
+    background-color: var(--table-border);
+}
+
+.edit-undo-btn svg {
+    width: 14px;
+    height: 14px;
 }
 
 .edit-history-item:not(:last-child) {
