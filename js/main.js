@@ -154,7 +154,9 @@ async function renderEntries() {
            
         </tr>    
         <tr><td class="add-entry-cell" colspan="10">
-            <button class="btn-add-entry" onclick="app.onAddEntry('${entry.id}')">+</button>
+            <button class="btn-add-entry" onclick="app.onAddEntry('${entry.id}')">
+                <i data-lucide="plus"></i>
+            </button>
         </td></tr>  
 
     `})
