@@ -407,8 +407,59 @@ button {
     }
 }
 
+.table-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+}
 
 .btn-sign {
-    margin: 1em;
-    font-size: 1.2em;
+    padding: 10px 20px;
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-sign:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-sign svg {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-download-csv {
+    padding: 10px 20px;
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-download-csv svg {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-download-csv:hover,
+.btn-sign:hover {
+    opacity: 0.8;
 }

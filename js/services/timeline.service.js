@@ -4,7 +4,8 @@ export const timelineService = {
     toggleConfirm,
     getGroundings,
     updateFieldValue,
-    addEntry
+    addEntry,
+    getAsCSV
 }
 
 const cellState = {
@@ -263,6 +264,58 @@ function addEntry(entryData) {
     const newEntry = _createEntry(entryData)
     demoData.push(newEntry)
     return newEntry
+}
+
+function getAsCSV() {
+    // Define CSV headers
+    const headers = [
+        'ID',
+        'Operator',
+        'Date Range Start',
+        'Date Range End',
+        'ESN',
+        'Engine Total Cycle Start',
+        'Engine Total Cycle End',
+        'Engine Total Hour Start',
+        'Engine Total Hour End',
+        'Part Total Cycle Start',
+        'Part Total Cycle End',
+        'Part Total Hour Start',
+        'Part Total Hour End',
+        'Part Hours (Op)',
+        'Part Cycles (Op)'
+    ]
+    
+    // Build CSV rows
+    const rows = demoData.map(entry => {
+        return [
+            entry.id,
+            entry.op.value,
+            entry.dateRange.start.value,
+            entry.dateRange.end.value,
+            entry.engine.esn.value,
+            entry.engine.totalCycleRange.start.value,
+            entry.engine.totalCycleRange.end.value,
+            entry.engine.totalHourRange.start.value,
+            entry.engine.totalHourRange.end.value,
+            entry.part.totalCycleRange.start.value,
+            entry.part.totalCycleRange.end.value,
+            entry.part.totalHourRange.start.value,
+            entry.part.totalHourRange.end.value,
+            entry.part.hours.value,
+            entry.part.cycles.value
+        ].map(value => {
+            // Escape values that contain commas, quotes, or newlines
+            const stringValue = String(value)
+            if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+                return `"${stringValue.replace(/"/g, '""')}"`
+            }
+            return stringValue
+        }).join(',')
+    })
+    
+    // Combine headers and rows
+    return [headers.join(','), ...rows].join('\n')
 }
 
 function toggleConfirm(entryId, fieldPath) {
