@@ -124,6 +124,12 @@ button {
     border: 0;
     background-color: transparent;
     float: right;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.timeline-table td:not(.actions-cell):hover button {
+    opacity: 1;
 }
 
 .timeline-table td:not(.actions-cell) button svg {
