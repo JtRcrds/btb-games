@@ -99,13 +99,13 @@ async function renderEntries() {
                 ${entry.engine.totalHourRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalHourRange.start', entry.engine.totalHourRange.start.value)}
             </td>
-            <td rowspan="2" class="cell-with-groundings ${entry.part.totalHours.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHours">
-                ${entry.part.totalHours.value.toLocaleString()}
-                ${getCellButtons(entry, 'part.totalHours', entry.part.totalHours.value)}
+            <td class="cell-with-groundings ${entry.part.totalHourRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.start">
+                ${entry.part.totalHourRange.start.value.toLocaleString()}
+                ${getCellButtons(entry, 'part.totalHourRange.start', entry.part.totalHourRange.start.value)}
             </td>
-            <td rowspan="2" class="cell-with-groundings ${entry.part.totalCycles.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycles">
-                ${entry.part.totalCycles.value.toLocaleString()}
-                ${getCellButtons(entry, 'part.totalCycles', entry.part.totalCycles.value)}
+            <td class="cell-with-groundings ${entry.part.totalCycleRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.start">
+                ${entry.part.totalCycleRange.start.value.toLocaleString()}
+                ${getCellButtons(entry, 'part.totalCycleRange.start', entry.part.totalCycleRange.start.value)}
             </td>
             <td rowspan="2" data-entry-id="${entry.id}">
                 ${entry.part.cycles.value.toLocaleString()}
@@ -130,6 +130,14 @@ async function renderEntries() {
             <td class="cell-with-groundings ${entry.engine.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end">
                 ${entry.engine.totalHourRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalHourRange.end', entry.engine.totalHourRange.end.value)}
+            </td>
+            <td class="cell-with-groundings ${entry.part.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.end">
+                ${entry.part.totalHourRange.end.value.toLocaleString()}
+                ${getCellButtons(entry, 'part.totalHourRange.end', entry.part.totalHourRange.end.value)}
+            </td>
+            <td class="cell-with-groundings ${entry.part.totalCycleRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.end">
+                ${entry.part.totalCycleRange.end.value.toLocaleString()}
+                ${getCellButtons(entry, 'part.totalCycleRange.end', entry.part.totalCycleRange.end.value)}
             </td>
            
         </tr>    
