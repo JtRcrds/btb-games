@@ -4,7 +4,8 @@ export const timelineService = {
     split,
     toggleConfirm,
     getGroundings,
-    updateFieldValue
+    updateFieldValue,
+    addEntry
 }
 
 const cellState = {
@@ -13,6 +14,122 @@ const cellState = {
     confirmed: 'confirmed'
 }
 
+function _createEntry({
+    id,
+    op,
+    dateRangeStart,
+    dateRangeEnd,
+    esn,
+    engineTotalCycleStart,
+    engineTotalCycleEnd,
+    engineTotalHourStart,
+    engineTotalHourEnd,
+    partTotalCycleStart,
+    partTotalCycleEnd,
+    partTotalHourStart,
+    partTotalHourEnd
+}) {
+    return {
+        id: id || `entry-${Date.now()}`,
+        dateRange: {
+            start: {
+                value: dateRangeStart || '',
+                state: cellState.draft,
+                edits: [],
+                groundings: []
+            },
+            end: {
+                value: dateRangeEnd || '',
+                state: cellState.draft,
+                edits: [],
+                groundings: []
+            }
+        },
+        engine: {
+            esn: {
+                value: esn || '',
+                state: cellState.draft,
+                edits: [],
+                groundings: []
+            },
+            totalHourRange: {
+                start: {
+                    value: engineTotalHourStart || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                },
+                end: {
+                    value: engineTotalHourEnd || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                }
+            },
+            totalCycleRange: {
+                start: {
+                    value: engineTotalCycleStart || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                },
+                end: {
+                    value: engineTotalCycleEnd || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                }
+            }
+        },
+        part: {
+            hours: {
+                value: (partTotalHourEnd || 0) - (partTotalHourStart || 0),
+                state: cellState.draft,
+                edits: []
+            },
+            cycles: {
+                value: (partTotalCycleEnd || 0) - (partTotalCycleStart || 0),
+                state: cellState.draft,
+                edits: []
+            },
+            totalHourRange: {
+                start: {
+                    value: partTotalHourStart || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                },
+                end: {
+                    value: partTotalHourEnd || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                }
+            },
+            totalCycleRange: {
+                start: {
+                    value: partTotalCycleStart || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                },
+                end: {
+                    value: partTotalCycleEnd || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                }
+            }
+        },
+        op: {
+            id: `op-${id || Date.now()}`,
+            value: op || '',
+            state: cellState.draft,
+            edits: [],
+            groundings: []
+        }
+    }
+}
 
 async function query() {
     return demoData
@@ -20,241 +137,95 @@ async function query() {
 
 
 const demoData = [
-    {
+    _createEntry({
         id: 'entry-101',
-        dateRange: {
-            start: {
-                value: '13-Jul-2005',
-                state: cellState.draft,
-                edits: [],
-                groundings: [{
-                    cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 145, y1: 498, x2: 255, y2: 523
-                }]
-            },
-            end: {
-                value: '25-Oct-2006',
-                state: cellState.draft,
-                edits: [],
-                groundings: [{
-                    cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 465, x2: 255, y2: 490
-                }]
-            }
-        },
-        engine: {
-            esn: {
-                value: '577351',
-                state: cellState.draft,
-                edits: [
-                    { at: '2025-06-10T11:00:00Z',  by: 'user1', from: '577352', to: '577351',},
-                    { at: '2025-06-10T10:00:00Z',  by: 'user2', from: '577357', to: '577352'},
-                ],
-                groundings: [{
-                    cFileId: 'cfile-101', pageNum: 2, x1: 132, y1: 595, x2: 198, y2: 620
-                }]
-            },
-            totalHourRange: {
-                start: {
-                    value: 0,
-                    state: cellState.draft,
-                    edits: []
-                },
-                end: {
-                    value: 1322,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: [{
-                        cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395
-                    }]
-                }
-            },
-            totalCycleRange: {
-                start: {
-                    value: 0,
-                    state: cellState.draft,
-                    edits: []
-                },
-                end: {
-                    value: 540,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: [{
-                        cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360
-                    }]
-                }
-            },
-
-        },
-        part: {
-            hours: {
-                value: 1322,
-                state: cellState.draft,
-                edits: []
-            },
-            cycles: {
-                value: 540,
-                state: cellState.draft,
-                edits: []
-            },
-            totalHourRange: {
-                start: {
-                    value: 0,
-                    state: cellState.draft,
-                    edits: []
-                },
-                end: {
-                    value: 1322,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: [{
-                        cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395
-                    }]
-                }
-            },
-            totalCycleRange: {
-                start: {
-                    value: 0,
-                    state: cellState.draft,
-                    edits: []
-                },
-                end: {
-                    value: 540,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: [{
-                        cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360
-                    }]
-                }
-            },
-
-        },
-        op: {
-            id: 'op-101',
-            value: 'LTU',
-            state: cellState.draft,
-            edits: [],
-            groundings: [{
-                cFileId: 'cfile-101', pageNum: 2, x1: 280, y1: 745, x2: 325, y2: 770
-            }]
-        },
-    },
-    {
+        op: 'LTU',
+        dateRangeStart: '13-Jul-2005',
+        dateRangeEnd: '25-Oct-2006',
+        esn: '577351',
+        engineTotalCycleStart: 0,
+        engineTotalCycleEnd: 540,
+        engineTotalHourStart: 0,
+        engineTotalHourEnd: 1322,
+        partTotalCycleStart: 0,
+        partTotalCycleEnd: 540,
+        partTotalHourStart: 0,
+        partTotalHourEnd: 1322
+    }),
+    _createEntry({
         id: 'entry-102',
-        dateRange: {
-
-            start: {
-                value: '25-Dec-2006',
-                state: cellState.draft,
-                edits: [],
-                groundings: [{
-                    cFileId: 'cfile-101', pageNum: 3, x1: 145, y1: 498, x2: 265, y2: 523
-                }]
-            },
-            end: {
-                value: '5-Dec-2012',
-                state: cellState.draft,
-                edits: [],
-                groundings: [{
-                    cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 465, x2: 255, y2: 490
-                }]
-            }
-        },
-        engine: {
-            esn: {
-                value: '577351',
-                state: cellState.draft,
-                edits: [],
-                groundings: [{
-                    cFileId: 'cfile-101', pageNum: 3, x1: 132, y1: 595, x2: 198, y2: 620
-                }]
-            },
-            totalHourRange: {
-                start: {
-                    value: 1322,
-                    state: cellState.draft,
-                    edits: []
-                },
-                end: {
-                    value: 19004,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: [
-                        { cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395 },
-                        { cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395 }
-                    ]
-                }
-            },
-            totalCycleRange: {
-                start: {
-                    value: 540,
-                    state: cellState.draft,
-                    edits: []
-                },
-                end: {
-                    value: 10125,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: [
-                        { cFileId: 'cfile-101', pageNum: 2, x1: 70, y1: 400, x2: 220, y2: 425 },
-                        { cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360 },
-                        { cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 192, y2: 360 }
-                    ]
-                }
-            },
-
-        },
-        part: {
-            hours: {
-                value: 17682,
-                state: cellState.draft,
-                edits: []
-            },
-            cycles: {
-                value: 9585,
-                state: cellState.draft,
-                edits: []
-            },
-            totalHourRange: {
-                start: {
-                    value: 1322,
-                    state: cellState.draft,
-                    edits: []
-                },
-                end: {
-                    value: 19004,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: [{
-                        cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395
-                    }]
-                }
-            },
-            totalCycleRange: {
-                start: {
-                    value: 540,
-                    state: cellState.draft,
-                    edits: []
-                },
-                end: {
-                    value: 10125,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: [{
-                        cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 202, y2: 360
-                    }]
-                }
-            }
-        },
-        op: {
-            id: 'op-102',
-            value: 'AIR BERLIN',
-            state: cellState.draft,
-            edits: [],
-            groundings: [{
-                cFileId: 'cfile-101', pageNum: 3, x1: 280, y1: 745, x2: 400, y2: 770
-            }]
-        }
-    }
+        op: 'AIR BERLIN',
+        dateRangeStart: '25-Dec-2006',
+        dateRangeEnd: '5-Dec-2012',
+        esn: '577351',
+        engineTotalCycleStart: 540,
+        engineTotalCycleEnd: 10125,
+        engineTotalHourStart: 1322,
+        engineTotalHourEnd: 19004,
+        partTotalCycleStart: 540,
+        partTotalCycleEnd: 10125,
+        partTotalHourStart: 1322,
+        partTotalHourEnd: 19004
+    })
 ]
+
+// Add groundings manually for demo data since factory doesn't include them
+demoData[0].dateRange.start.groundings = [{
+    cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 145, y1: 498, x2: 255, y2: 523
+}]
+demoData[0].dateRange.end.groundings = [{
+    cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 465, x2: 255, y2: 490
+}]
+demoData[0].engine.esn.groundings = [{
+    cFileId: 'cfile-101', pageNum: 2, x1: 132, y1: 595, x2: 198, y2: 620
+}]
+demoData[0].engine.esn.edits = [
+    { at: '2025-06-10T11:00:00Z', by: 'user1', from: '577352', to: '577351' },
+    { at: '2025-06-10T10:00:00Z', by: 'user2', from: '577357', to: '577352' }
+]
+demoData[0].engine.totalHourRange.end.groundings = [{
+    cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395
+}]
+demoData[0].engine.totalCycleRange.end.groundings = [{
+    cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360
+}]
+demoData[0].part.totalHourRange.end.groundings = [{
+    cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395
+}]
+demoData[0].part.totalCycleRange.end.groundings = [{
+    cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360
+}]
+demoData[0].op.groundings = [{
+    cFileId: 'cfile-101', pageNum: 2, x1: 280, y1: 745, x2: 325, y2: 770
+}]
+
+demoData[1].dateRange.start.groundings = [{
+    cFileId: 'cfile-101', pageNum: 3, x1: 145, y1: 498, x2: 265, y2: 523
+}]
+demoData[1].dateRange.end.groundings = [{
+    cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 465, x2: 255, y2: 490
+}]
+demoData[1].engine.esn.groundings = [{
+    cFileId: 'cfile-101', pageNum: 3, x1: 132, y1: 595, x2: 198, y2: 620
+}]
+demoData[1].engine.totalHourRange.end.groundings = [
+    { cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395 },
+    { cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395 }
+]
+demoData[1].engine.totalCycleRange.end.groundings = [
+    { cFileId: 'cfile-101', pageNum: 2, x1: 70, y1: 400, x2: 220, y2: 425 },
+    { cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360 },
+    { cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 192, y2: 360 }
+]
+demoData[1].part.totalHourRange.end.groundings = [{
+    cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395
+}]
+demoData[1].part.totalCycleRange.end.groundings = [{
+    cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 202, y2: 360
+}]
+demoData[1].op.groundings = [{
+    cFileId: 'cfile-101', pageNum: 3, x1: 280, y1: 745, x2: 400, y2: 770
+}]
 
 const cfileUrlMap = {
     'cfile-101': './pdf/doc1.pdf'
@@ -287,6 +258,12 @@ function remove(entryId) {
     if (entryIdx === -1) return false
     demoData.splice(entryIdx, 1)
     return true
+}
+
+function addEntry(entryData) {
+    const newEntry = _createEntry(entryData)
+    demoData.push(newEntry)
+    return newEntry
 }
 
 function split(entryId) {

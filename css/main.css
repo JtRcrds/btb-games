@@ -98,6 +98,14 @@ button {
     background-color: var(--table-cell-bg);
 }
 
+.timeline-table td[colspan] {
+    text-align: center;
+}
+
+.btn-add-entry {
+    opacity: 1 !important;
+}
+
 
 
 .timeline-table .cell-with-groundings:hover {
@@ -120,7 +128,7 @@ button {
     background-color: #ddd;
 }
 
-.timeline-table td:not(.actions-cell) button {
+.timeline-table td:not(.actions-cell):not(.add-entry-cell) button {
     border: 0;
     background-color: transparent;
     float: right;
@@ -129,6 +137,14 @@ button {
 }
 
 .timeline-table td:not(.actions-cell):hover button {
+    opacity: 1;
+}
+.timeline-table td.add-entry-cell {
+    text-align: center;
+    background-color: var(--table-cell-bg);
+}
+
+.timeline-table td.add-entry-cell button.btn-add-entry {
     opacity: 1;
 }
 
@@ -278,6 +294,94 @@ button {
     pointer-events: none;
 }
 
+/* Dialog styles */
+#add-entry-dialog {
+    border: 2px solid var(--table-border);
+    border-radius: 8px;
+    padding: 20px;
+    background-color: var(--table-bg);
+    color: var(--text-color);
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    width: 400px;
+}
+
+#add-entry-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#add-entry-dialog h2 {
+    margin-top: 0;
+    color: var(--text-color);
+}
+
+#add-entry-form fieldset {
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+#add-entry-form legend {
+    font-weight: 600;
+    color: var(--table-header-bg);
+    padding: 0 5px;
+}
+
+#add-entry-form label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+#add-entry-form input {
+    display: block;
+    width: 95%;
+    padding: 8px;
+    margin-top: 4px;
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+#add-entry-form input:focus {
+    outline: 2px solid var(--grounding-highlight);
+    outline-offset: 2px;
+}
+
+.dialog-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.dialog-buttons button {
+    padding: 10px 20px;
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.dialog-buttons button[type="submit"] {
+    background-color: var(--grounding-highlight);
+    color: white;
+    border-color: var(--grounding-highlight);
+}
+
+.dialog-buttons button[type="button"] {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+}
+
+.dialog-buttons button:hover {
+    opacity: 0.85;
+}
 
 /* Responsive design */
 @media (max-width: 768px) {

@@ -13,6 +13,7 @@ window.app = {
     onSplitEntry,
     onConfirmCell,
     onEditCell,
+    onAddEntry
 }
 
 const pdfState = {
@@ -40,7 +41,7 @@ async function onInit() {
     }
     await renderEntries()
     setupTableKeyboardNavigation()
-
+    setupAddEntryForm()
 }
 
 function onToggleTheme() {
@@ -141,7 +142,10 @@ async function renderEntries() {
             </td>
            
         </tr>    
-        <tr><td colspan="10"><hr></td></tr>  
+        <tr><td class="add-entry-cell" colspan="10">
+            <button class="btn-add-entry" onclick="app.onAddEntry('${entry.id}')">+</button>
+        </td></tr>  
+
     `})
 
     document.querySelector('.timeline-table tbody').innerHTML = strHTMLs.join('')
@@ -475,5 +479,74 @@ function onEditCell(event, entryId, fieldPath, currentValue) {
             e.preventDefault()
             cancel()
         }
+    })
+}
+function onAddEntry(prevEntryId) {
+    const dialog = document.getElementById('add-entry-dialog')
+    const form = document.getElementById('add-entry-form')
+    
+    // Reset form first
+    form.reset()
+    
+    // If there's a previous entry, pre-fill the form
+    if (prevEntryId) {
+        const prevEntry = window.demoData.find(entry => entry.id === prevEntryId)
+        if (prevEntry) {
+            // Pre-fill operator and ESN from previous entry
+            form.querySelector('[name="op"]').value = prevEntry.op.value
+            form.querySelector('[name="esn"]').value = prevEntry.engine.esn.value
+            
+            // Set start date to previous entry's end date
+            form.querySelector('[name="dateRangeStart"]').value = prevEntry.dateRange.end.value
+            
+            // Set engine total cycle start to previous entry's end
+            form.querySelector('[name="engineTotalCycleStart"]').value = prevEntry.engine.totalCycleRange.end.value
+            
+            // Set engine total hour start to previous entry's end
+            form.querySelector('[name="engineTotalHourStart"]').value = prevEntry.engine.totalHourRange.end.value
+            
+            // Set part total cycle start to previous entry's end
+            form.querySelector('[name="partTotalCycleStart"]').value = prevEntry.part.totalCycleRange.end.value
+            
+            // Set part total hour start to previous entry's end
+            form.querySelector('[name="partTotalHourStart"]').value = prevEntry.part.totalHourRange.end.value
+        }
+    }
+    
+    dialog.showModal()
+}
+
+function setupAddEntryForm() {
+    const form = document.getElementById('add-entry-form')
+    
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        
+        // Get form data
+        const formData = new FormData(form)
+        const entryData = {
+            op: formData.get('op'),
+            dateRangeStart: formData.get('dateRangeStart'),
+            dateRangeEnd: formData.get('dateRangeEnd'),
+            esn: formData.get('esn'),
+            engineTotalHourStart: parseFloat(formData.get('engineTotalHourStart')),
+            engineTotalHourEnd: parseFloat(formData.get('engineTotalHourEnd')),
+            engineTotalCycleStart: parseFloat(formData.get('engineTotalCycleStart')),
+            engineTotalCycleEnd: parseFloat(formData.get('engineTotalCycleEnd')),
+            partTotalHourStart: parseFloat(formData.get('partTotalHourStart')),
+            partTotalHourEnd: parseFloat(formData.get('partTotalHourEnd')),
+            partTotalCycleStart: parseFloat(formData.get('partTotalCycleStart')),
+            partTotalCycleEnd: parseFloat(formData.get('partTotalCycleEnd'))
+        }
+        
+        // Add entry via service
+        timelineService.addEntry(entryData)
+        
+        // Re-render the table
+        await renderEntries()
+        
+        // Close dialog and reset form
+        document.getElementById('add-entry-dialog').close()
+        form.reset()
     })
 }
