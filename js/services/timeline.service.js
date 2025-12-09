@@ -1,7 +1,6 @@
 export const timelineService = {
     query,
     remove,
-    split,
     toggleConfirm,
     getGroundings,
     updateFieldValue,
@@ -264,16 +263,6 @@ function addEntry(entryData) {
     const newEntry = _createEntry(entryData)
     demoData.push(newEntry)
     return newEntry
-}
-
-function split(entryId) {
-    const entryIdx = demoData.findIndex(entry => entry.id === entryId)
-    if (entryIdx === -1) return false
-    const entry = demoData[entryIdx]
-    const newEntry = JSON.parse(JSON.stringify(entry))
-    newEntry.id = `entry-${Date.now()}`
-    demoData.splice(entryIdx + 1, 0, newEntry)
-    return true
 }
 
 function toggleConfirm(entryId, fieldPath) {

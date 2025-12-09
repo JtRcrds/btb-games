@@ -10,7 +10,6 @@ window.app = {
     onNextGrounding,
     onPrevGrounding,
     onRemoveEntry,
-    onSplitEntry,
     onConfirmCell,
     onEditCell,
     onAddEntry
@@ -113,7 +112,6 @@ async function renderEntries() {
             </td>
             <td rowspan="2" class="actions-cell">
                 <button onclick="app.onRemoveEntry('${entry.id}')">x</button>
-                <button onclick="app.onSplitEntry('${entry.id}')">Split</button>
             </td>
         </tr>    
         <tr>
@@ -382,15 +380,6 @@ function onRemoveEntry(entryId) {
         renderEntries()
     } else {
         alert('Failed to remove entry with ID: ' + entryId)
-    }
-}
-
-function onSplitEntry(entryId) {
-    if (!confirm('Are you sure you want to split this entry?')) return
-    if (timelineService.split(entryId)) {
-        renderEntries()
-    } else {
-        alert('Failed to split entry with ID: ' + entryId)
     }
 }
 
