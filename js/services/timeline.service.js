@@ -1,3 +1,5 @@
+
+
 export const timelineService = {
     query,
     remove,
@@ -11,9 +13,18 @@ export const timelineService = {
 
 const cellState = {
     draft: 'draft',
-    // edited: 'edited',
     confirmed: 'confirmed'
 }
+
+//  Errors should be visible as border colors and/or badges
+// ???
+// const cellError = {
+//     SourceMissing: 'no_source',
+//     ConstitutiveMissing: 'no_constitutive',
+//     Invalid: 'invalid'
+// }
+
+
 
 function _createEntry({
     id,
