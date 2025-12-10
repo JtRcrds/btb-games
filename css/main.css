@@ -243,13 +243,79 @@ button {
     border-color: yellow;
 }
 
+/* Draggable Research Modal */
+.cell-research-modal {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    width: 800px;
+    max-width: 90vw;
+    max-height: 80vh;
+    background-color: var(--table-bg);
+    border: 2px solid var(--table-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.cell-research-modal.visible {
+    display: flex;
+}
+
+.modal-drag-handle {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+    padding: 10px 15px;
+    cursor: move;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--table-border);
+}
+
+.drag-indicator {
+    font-size: 16px;
+    opacity: 0.6;
+    letter-spacing: -2px;
+}
+
+.modal-drag-handle span:nth-child(2) {
+    flex: 1;
+    font-weight: 600;
+}
+
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--table-header-text);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.modal-close-btn:hover {
+    opacity: 1;
+}
+
 /* PDF Viewer Styles */
 .pdf-viewer-container {
-    margin-top: 40px;
     padding: 20px;
     background-color: var(--table-bg);
-    border-radius: 8px;
-    border: 1px solid var(--table-border);
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
 }
 
 .pdf-viewer-container h2 {
@@ -363,10 +429,14 @@ button {
     border: 1px solid var(--table-border);
     background-color: white;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    overflow: hidden;
 }
 
 #pdf-canvas {
     display: block;
+    max-width: 100%;
+    height: auto;
 }
 
 #bounds-canvas {
@@ -374,6 +444,7 @@ button {
     top: 0;
     left: 0;
     pointer-events: none;
+    max-width: 100%;
 }
 
 /* Dialog styles */

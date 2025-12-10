@@ -15,7 +15,8 @@ window.app = {
     onUndoEdit,
     onAddEntry,
     onDownloadCSV,
-    onSignOff
+    onSignOff,
+    onCloseResearchModal
 }
 
 const pdfState = {
@@ -44,6 +45,7 @@ async function onInit() {
     await renderEntries()
     setupTableKeyboardNavigation()
     setupAddEntryForm()
+    initDraggableModal()
 }
 
 function onToggleTheme() {
@@ -55,6 +57,52 @@ function onToggleTheme() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
 }
 
+function initDraggableModal() {
+    const modal = document.querySelector('.cell-research-modal')
+    const dragHandle = document.querySelector('.modal-drag-handle')
+    
+    if (!modal || !dragHandle) return
+    
+    let isDragging = false
+    let currentX = 0
+    let currentY = 0
+    let initialX = 0
+    let initialY = 0
+    
+    dragHandle.addEventListener('mousedown', (e) => {
+        isDragging = true
+        initialX = e.clientX - currentX
+        initialY = e.clientY - currentY
+        modal.style.cursor = 'grabbing'
+    })
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return
+        
+        e.preventDefault()
+        currentX = e.clientX - initialX
+        currentY = e.clientY - initialY
+        
+        modal.style.top = `${currentY}px`
+        modal.style.right = 'auto'
+        modal.style.left = `${currentX}px`
+    })
+    
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false
+            modal.style.cursor = 'default'
+        }
+    })
+}
+
+function onCloseResearchModal() {
+    const modal = document.querySelector('.cell-research-modal')
+    const pdfContainer = document.querySelector('.pdf-viewer-container')
+    
+    modal.classList.remove('visible')
+    pdfContainer.style.display = 'none'
+}
 
 function getCellButtons(entry, fieldPath, fieldValue) {
     const field = fieldPath.split('.').reduce((obj, key) => obj?.[key], entry)
@@ -277,7 +325,8 @@ async function onShowGroundings(ev, entryId, fieldPath) {
         return
     }
 
-    // Show PDF viewer
+    // Show modal and PDF viewer
+    document.querySelector('.cell-research-modal').classList.add('visible')
     document.querySelector('.pdf-viewer-container').style.display = 'block'
 
     // Navigate to first grounding
@@ -285,12 +334,6 @@ async function onShowGroundings(ev, entryId, fieldPath) {
 
     // Update grounding navigation UI
     updateGroundingNavigationUI()
-
-    // Scroll to PDF viewer
-    document.querySelector('.pdf-viewer-container').scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-    })
 }
 
 async function navigateToGrounding(index) {

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body onload="app.onInit()">
     <button class="theme-toggle" onclick="app.onToggleTheme()">Toggle Theme</button>
 
@@ -118,31 +120,40 @@
         </form>
     </dialog>
 
-    <section class="pdf-viewer-container" style="display: none;">
-        <h2>PDF Viewer</h2>
-        
-        <div class="grounding-navigation" style="display: none;">
-            <div class="grounding-info">
-                <strong>Field:</strong> <span id="grounding-field"></span>
+    <div class="cell-research-modal">
+        <div class="modal-drag-handle">
+            <span class="drag-indicator">⋮⋮</span>
+            <span>Research Panel</span>
+            <button class="modal-close-btn" onclick="app.onCloseResearchModal()">×</button>
+        </div>
+        <section class="pdf-viewer-container" style="display: none;">
+            <h2>PDF Viewer</h2>
+
+            <div class="grounding-navigation" style="display: none;">
+                <div class="grounding-info">
+                    <strong>Field:</strong> <span id="grounding-field"></span>
+                </div>
+                <div class="grounding-controls">
+                    <button id="prev-grounding-btn" onclick="app.onPrevGrounding()">◄ Previous Grounding</button>
+                    <span id="grounding-info">Grounding: <span id="grounding-num">1</span> / <span
+                            id="grounding-count">-</span></span>
+                    <button id="next-grounding-btn" onclick="app.onNextGrounding()">Next Grounding ►</button>
+                </div>
             </div>
-            <div class="grounding-controls">
-                <button id="prev-grounding-btn" onclick="app.onPrevGrounding()">◄ Previous Grounding</button>
-                <span id="grounding-info">Grounding: <span id="grounding-num">1</span> / <span id="grounding-count">-</span></span>
-                <button id="next-grounding-btn" onclick="app.onNextGrounding()">Next Grounding ►</button>
+
+            <div class="pdf-controls">
+                <button onclick="app.onPrevPage()">◄ Previous Page</button>
+                <span id="page-info">Page: <span id="page-num">1</span> / <span id="page-count">-</span></span>
+                <button onclick="app.onNextPage()">Next Page ►</button>
             </div>
-        </div>
-        
-        <div class="pdf-controls">
-            <button onclick="app.onPrevPage()">◄ Previous Page</button>
-            <span id="page-info">Page: <span id="page-num">1</span> / <span id="page-count">-</span></span>
-            <button onclick="app.onNextPage()">Next Page ►</button>
-        </div>
-        <div class="canvas-wrapper">
-            <canvas id="pdf-canvas"></canvas>
-            <canvas id="bounds-canvas"></canvas>
-        </div>
-    </section>
-        
+            <div class="canvas-wrapper">
+                <canvas id="pdf-canvas"></canvas>
+                <canvas id="bounds-canvas"></canvas>
+            </div>
+        </section>
+    </div>
+
     <script type="module" src="js/main.js"></script>
 </body>
+
 </html>
