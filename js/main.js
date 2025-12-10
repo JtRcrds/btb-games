@@ -68,9 +68,24 @@ function initDraggableModal() {
     let currentY = 0
     let initialX = 0
     let initialY = 0
+    let hasBeenDragged = false
     
     dragHandle.addEventListener('mousedown', (e) => {
         isDragging = true
+        
+        // On first drag, calculate current position from CSS
+        if (!hasBeenDragged) {
+            const rect = modal.getBoundingClientRect()
+            currentX = rect.left
+            currentY = rect.top
+            hasBeenDragged = true
+            
+            // Convert from right-positioned to left-positioned
+            modal.style.right = 'auto'
+            modal.style.left = `${currentX}px`
+            modal.style.top = `${currentY}px`
+        }
+        
         initialX = e.clientX - currentX
         initialY = e.clientY - currentY
         modal.style.cursor = 'grabbing'
@@ -83,9 +98,8 @@ function initDraggableModal() {
         currentX = e.clientX - initialX
         currentY = e.clientY - initialY
         
-        modal.style.top = `${currentY}px`
-        modal.style.right = 'auto'
         modal.style.left = `${currentX}px`
+        modal.style.top = `${currentY}px`
     })
     
     document.addEventListener('mouseup', () => {
