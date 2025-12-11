@@ -1,5 +1,4 @@
 
-
 export const timelineService = {
     query,
     remove,
@@ -24,124 +23,6 @@ const cellState = {
 //     Invalid: 'invalid'
 // }
 
-
-
-function _createEntry({
-    id,
-    op,
-    dateRangeStart,
-    dateRangeEnd,
-    esn,
-    engineTotalCycleStart,
-    engineTotalCycleEnd,
-    engineTotalHourStart,
-    engineTotalHourEnd,
-    partTotalCycleStart,
-    partTotalCycleEnd,
-    partTotalHourStart,
-    partTotalHourEnd
-}) {
-    return {
-        id: id || `entry-${Date.now()}`,
-        dateRange: {
-            start: {
-                value: dateRangeStart || '',
-                state: cellState.draft,
-                edits: [],
-                groundings: []
-            },
-            end: {
-                value: dateRangeEnd || '',
-                state: cellState.draft,
-                edits: [],
-                groundings: []
-            }
-        },
-        engine: {
-            esn: {
-                value: esn || '',
-                state: cellState.draft,
-                edits: [],
-                groundings: []
-            },
-            totalHourRange: {
-                start: {
-                    value: engineTotalHourStart || 0,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: []
-                },
-                end: {
-                    value: engineTotalHourEnd || 0,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: []
-                }
-            },
-            totalCycleRange: {
-                start: {
-                    value: engineTotalCycleStart || 0,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: []
-                },
-                end: {
-                    value: engineTotalCycleEnd || 0,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: []
-                }
-            }
-        },
-        part: {
-            hours: {
-                value: (partTotalHourEnd || 0) - (partTotalHourStart || 0),
-                state: cellState.draft,
-                edits: []
-            },
-            cycles: {
-                value: (partTotalCycleEnd || 0) - (partTotalCycleStart || 0),
-                state: cellState.draft,
-                edits: []
-            },
-            totalHourRange: {
-                start: {
-                    value: partTotalHourStart || 0,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: []
-                },
-                end: {
-                    value: partTotalHourEnd || 0,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: []
-                }
-            },
-            totalCycleRange: {
-                start: {
-                    value: partTotalCycleStart || 0,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: []
-                },
-                end: {
-                    value: partTotalCycleEnd || 0,
-                    state: cellState.draft,
-                    edits: [],
-                    groundings: []
-                }
-            }
-        },
-        op: {
-            id: `op-${id || Date.now()}`,
-            value: op || '',
-            state: cellState.draft,
-            edits: [],
-            groundings: []
-        }
-    }
-}
 
 async function query() {
     return demoData
@@ -182,62 +63,62 @@ const demoData = [
 ]
 
 // Add groundings manually for demo data since factory doesn't include them
-demoData[0].dateRange.start.groundings = [{
-    cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 145, y1: 498, x2: 255, y2: 523
-}]
-demoData[0].dateRange.end.groundings = [{
-    cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 465, x2: 255, y2: 490
-}]
-demoData[0].engine.esn.groundings = [{
-    cFileId: 'cfile-101', pageNum: 2, x1: 132, y1: 595, x2: 198, y2: 620
-}]
-demoData[0].engine.esn.edits = [
-    { at: '2025-06-10T11:00:00Z', by: 'user1', from: '577352', to: '577351' },
-    { at: '2025-06-10T10:00:00Z', by: 'user2', from: '577357', to: '577352' }
+demoData[0].dateRange.start.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 145, y1: 498, x2: 255, y2: 523 })
 ]
-demoData[0].engine.totalHourRange.end.groundings = [{
-    cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395
-}]
-demoData[0].engine.totalCycleRange.end.groundings = [{
-    cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360
-}]
-demoData[0].part.totalHourRange.end.groundings = [{
-    cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395
-}]
-demoData[0].part.totalCycleRange.end.groundings = [{
-    cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360
-}]
-demoData[0].op.groundings = [{
-    cFileId: 'cfile-101', pageNum: 2, x1: 280, y1: 745, x2: 325, y2: 770
-}]
+demoData[0].dateRange.end.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 140, y1: 465, x2: 255, y2: 490 })
+]
+demoData[0].engine.esn.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 132, y1: 595, x2: 198, y2: 620 })
+]
+demoData[0].engine.esn.edits = [
+    _createEdit({ at: '2025-06-10T11:00:00Z', by: 'user1', from: '577352', to: '577351' }),
+    _createEdit({ at: '2025-06-10T10:00:00Z', by: 'user2', from: '577357', to: '577352' })
+]
+demoData[0].engine.totalHourRange.end.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 135, y1: 370, x2: 185, y2: 395 })
+]
+demoData[0].engine.totalCycleRange.end.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 140, y1: 335, x2: 180, y2: 360 })
+]
+demoData[0].part.totalHourRange.end.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 135, y1: 370, x2: 185, y2: 395 })
+]
+demoData[0].part.totalCycleRange.end.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 140, y1: 335, x2: 180, y2: 360 })
+]
+demoData[0].op.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 280, y1: 745, x2: 325, y2: 770 })
+]
 
-demoData[1].dateRange.start.groundings = [{
-    cFileId: 'cfile-101', pageNum: 3, x1: 145, y1: 498, x2: 265, y2: 523
-}]
-demoData[1].dateRange.end.groundings = [{
-    cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 465, x2: 255, y2: 490
-}]
-demoData[1].engine.esn.groundings = [{
-    cFileId: 'cfile-101', pageNum: 3, x1: 132, y1: 595, x2: 198, y2: 620
-}]
+demoData[1].dateRange.start.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 145, y1: 498, x2: 265, y2: 523 })
+]
+demoData[1].dateRange.end.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 140, y1: 465, x2: 255, y2: 490 })
+]
+demoData[1].engine.esn.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 132, y1: 595, x2: 198, y2: 620 })
+]
 demoData[1].engine.totalHourRange.end.groundings = [
-    { cFileId: 'cfile-101', pageNum: 2, x1: 135, y1: 370, x2: 185, y2: 395 },
-    { cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395 }
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 135, y1: 370, x2: 185, y2: 395 }),
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 135, y1: 370, x2: 195, y2: 395 })
 ]
 demoData[1].engine.totalCycleRange.end.groundings = [
-    { cFileId: 'cfile-101', pageNum: 2, x1: 70, y1: 400, x2: 220, y2: 425 },
-    { cFileId: 'cfile-101', pageNum: 2, x1: 140, y1: 335, x2: 180, y2: 360 },
-    { cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 192, y2: 360 }
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 70, y1: 400, x2: 220, y2: 425 }),
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 140, y1: 335, x2: 180, y2: 360 }),
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 140, y1: 335, x2: 192, y2: 360 })
 ]
-demoData[1].part.totalHourRange.end.groundings = [{
-    cFileId: 'cfile-101', pageNum: 3, x1: 135, y1: 370, x2: 195, y2: 395
-}]
-demoData[1].part.totalCycleRange.end.groundings = [{
-    cFileId: 'cfile-101', pageNum: 3, x1: 140, y1: 335, x2: 202, y2: 360
-}]
-demoData[1].op.groundings = [{
-    cFileId: 'cfile-101', pageNum: 3, x1: 280, y1: 745, x2: 400, y2: 770
-}]
+demoData[1].part.totalHourRange.end.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 135, y1: 370, x2: 195, y2: 395 })
+]
+demoData[1].part.totalCycleRange.end.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 140, y1: 335, x2: 202, y2: 360 })
+]
+demoData[1].op.groundings = [
+    _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 280, y1: 745, x2: 400, y2: 770 })
+]
 
 const cfileUrlMap = {
     'cfile-101': './pdf/doc1.pdf'
@@ -369,12 +250,9 @@ function updateFieldValue(entryId, fieldPath, newValue) {
         // Only update if value actually changed
         if (oldValue === newValue) return false
         
-        field[lastProperty].edits.push({
-            at: new Date().toISOString(),
-            by: 'user1', // Hardcoded for now
-            from: oldValue,
-            to: newValue
-        })
+        field[lastProperty].edits.push(
+            _createEdit({ from: oldValue, to: newValue })
+        )
         
         // Update the value
         field[lastProperty].value = newValue
@@ -428,5 +306,145 @@ function undoEdit(entryId, fieldPath, editIndex) {
     
     return true
 }
+
+function _createGrounding({ cFileId, pageNum, docId, x1, y1, x2, y2 }) {
+    return {
+        cFileId,
+        pageNum,
+        docId,
+        x1,
+        y1,
+        x2,
+        y2
+    }
+}
+
+function _createEdit({ at, by, from, to }) {
+    return {
+        at: at || new Date().toISOString(),
+        by: by || 'user1',
+        from,
+        to
+    }
+}
+
+function _createEntry({
+    id,
+    op,
+    dateRangeStart,
+    dateRangeEnd,
+    esn,
+    engineTotalCycleStart,
+    engineTotalCycleEnd,
+    engineTotalHourStart,
+    engineTotalHourEnd,
+    partTotalCycleStart,
+    partTotalCycleEnd,
+    partTotalHourStart,
+    partTotalHourEnd
+}) {
+    return {
+        id: id || `entry-${Date.now()}`,
+        dateRange: {
+            start: {
+                value: dateRangeStart || '',
+                state: cellState.draft,
+                edits: [],
+                groundings: []
+            },
+            end: {
+                value: dateRangeEnd || '',
+                state: cellState.draft,
+                edits: [],
+                groundings: []
+            }
+        },
+        engine: {
+            esn: {
+                value: esn || '',
+                state: cellState.draft,
+                edits: [],
+                groundings: []
+            },
+            totalHourRange: {
+                start: {
+                    value: engineTotalHourStart || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                },
+                end: {
+                    value: engineTotalHourEnd || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                }
+            },
+            totalCycleRange: {
+                start: {
+                    value: engineTotalCycleStart || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                },
+                end: {
+                    value: engineTotalCycleEnd || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                }
+            }
+        },
+        part: {
+            hours: {
+                value: (partTotalHourEnd || 0) - (partTotalHourStart || 0),
+                state: cellState.draft,
+                edits: []
+            },
+            cycles: {
+                value: (partTotalCycleEnd || 0) - (partTotalCycleStart || 0),
+                state: cellState.draft,
+                edits: []
+            },
+            totalHourRange: {
+                start: {
+                    value: partTotalHourStart || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                },
+                end: {
+                    value: partTotalHourEnd || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                }
+            },
+            totalCycleRange: {
+                start: {
+                    value: partTotalCycleStart || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                },
+                end: {
+                    value: partTotalCycleEnd || 0,
+                    state: cellState.draft,
+                    edits: [],
+                    groundings: []
+                }
+            }
+        },
+        op: {
+            id: `op-${id || Date.now()}`,
+            value: op || '',
+            state: cellState.draft,
+            edits: [],
+            groundings: []
+        }
+    }
+}
+
+
 
 window.demoData = demoData // For debugging purposes
