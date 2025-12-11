@@ -4,7 +4,7 @@ import { pdfService } from './services/pdf.service.js'
 window.app = {
     onInit,
     onToggleTheme,
-    onShowGroundings,
+    onToggleDetails,
     onNextPage,
     onPrevPage,
     onNextGrounding,
@@ -15,8 +15,7 @@ window.app = {
     onUndoEdit,
     onAddEntry,
     onDownloadCSV,
-    onSignOff,
-    onCloseResearchModal
+    onSignOff
 }
 
 const pdfState = {
@@ -57,65 +56,68 @@ function onToggleTheme() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
 }
 
-function initDraggableModal() {
-    const modal = document.querySelector('.cell-research-modal')
-    const dragHandle = document.querySelector('.modal-drag-handle')
-    
-    if (!modal || !dragHandle) return
-    
-    let isDragging = false
-    let currentX = 0
-    let currentY = 0
-    let initialX = 0
-    let initialY = 0
-    let hasBeenDragged = false
-    
-    dragHandle.addEventListener('mousedown', (e) => {
-        isDragging = true
-        
-        // On first drag, calculate current position from CSS
-        if (!hasBeenDragged) {
-            const rect = modal.getBoundingClientRect()
-            currentX = rect.left
-            currentY = rect.top
-            hasBeenDragged = true
-            
-            // Convert from right-positioned to left-positioned
-            modal.style.right = 'auto'
-            modal.style.left = `${currentX}px`
-            modal.style.top = `${currentY}px`
-        }
-        
-        initialX = e.clientX - currentX
-        initialY = e.clientY - currentY
-        modal.style.cursor = 'grabbing'
-    })
-    
-    document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return
-        
-        e.preventDefault()
-        currentX = e.clientX - initialX
-        currentY = e.clientY - initialY
-        
-        modal.style.left = `${currentX}px`
-        modal.style.top = `${currentY}px`
-    })
-    
-    document.addEventListener('mouseup', () => {
-        if (isDragging) {
-            isDragging = false
-            modal.style.cursor = 'default'
-        }
-    })
-}
+async function onToggleDetails(ev, entryId, fieldPath) {
+    if (ev) {
+        ev.target.closest('td').focus()
+    }
 
-function onCloseResearchModal() {
-    const modal = document.querySelector('.cell-research-modal')
-    const pdfContainer = document.querySelector('.pdf-viewer-container')
+    const researchRow = document.getElementById(`research-row-${entryId}`)
+    const researchPanel = document.getElementById(`research-panel-${entryId}`)
     
-    modal.classList.remove('visible')
-    pdfContainer.style.display = 'none'
+    if (!researchRow || !researchPanel) return
+    
+    const isVisible = researchRow.classList.contains('visible')
+    
+    if (isVisible) {
+        // Close
+        researchPanel.classList.remove('expanded')
+        setTimeout(() => {
+            researchRow.classList.remove('visible')
+        }, 300)
+    } else {
+        // Close all other research panels first
+        document.querySelectorAll('.research-row.visible').forEach(row => {
+            const panel = row.querySelector('.research-panel')
+            if (panel) {
+                panel.classList.remove('expanded')
+                setTimeout(() => {
+                    row.classList.remove('visible')
+                }, 300)
+            }
+        })
+        
+        // Open this one and load groundings
+        researchRow.classList.add('visible')
+        setTimeout(() => {
+            researchPanel.classList.add('expanded')
+        }, 10)
+
+        // Load groundings
+        const groundings = timelineService.getGroundings(entryId, fieldPath)
+        console.log('Groundings for', entryId, fieldPath, groundings)
+
+        if (!groundings || groundings.length === 0) {
+            alert('No groundings found for this field')
+            return
+        }
+
+        // Initialize navigation state
+        groundingNavigationState.entryId = entryId
+        groundingNavigationState.fieldPath = fieldPath
+        groundingNavigationState.allGroundings = groundings.filter(g => g.url) // Only valid groundings
+        groundingNavigationState.currentGroundingIndex = 0
+
+        if (groundingNavigationState.allGroundings.length === 0) {
+            alert('No valid PDF URL found for groundings')
+            return
+        }
+
+        // Navigate to first grounding
+        await navigateToGrounding(0)
+
+        // Update grounding navigation UI
+        updateGroundingNavigationUI()
+    }
 }
 
 function getCellButtons(entry, fieldPath, fieldValue) {
@@ -131,7 +133,7 @@ function getCellButtons(entry, fieldPath, fieldValue) {
         <button title="${isConfirmed ? 'Unconfirm' : 'Confirm'}" onclick="app.onConfirmCell(event, '${entry.id}', '${fieldPath}')">
             <i data-lucide="${isConfirmed ? 'book-open-check' : 'book-check'}"></i>
         </button>
-        <button title="Show Groundings" onclick="app.onShowGroundings(event, '${entry.id}', '${fieldPath}')">
+        <button title="Show/Hide Details" onclick="app.onToggleDetails(event, '${entry.id}', '${fieldPath}')">
             <i data-lucide="eye"></i>
         </button>
         <button title="Edit" ${isConfirmed ? 'hidden' : ''} onclick="app.onEditCell(event, '${entry.id}', '${fieldPath}${fieldValue !== undefined ? '' : '.value'}', ${typeof fieldValue === 'string' ? `'${fieldValue}'` : fieldValue})">
@@ -273,6 +275,37 @@ async function renderEntries() {
                 ${getCellButtons(entry, 'part.totalCycleRange.end', entry.part.totalCycleRange.end.value)}
             </td>
            
+        </tr>
+        <tr id="research-row-${entry.id}" class="research-row">
+            <td colspan="10" class="research-cell">
+                <div id="research-panel-${entry.id}" class="research-panel">
+                    <div class="research-header">
+                        <h3>Research Panel</h3>
+                        <button class="close-research-btn" onclick="app.onToggleResearchPanel('${entry.id}')">×</button>
+                    </div>
+                    <div class="pdf-viewer-container" id="pdf-container-${entry.id}">
+                        <div class="grounding-navigation" id="grounding-nav-${entry.id}" style="display: none;">
+                            <div class="grounding-info">
+                                <strong>Field:</strong> <span id="grounding-field-${entry.id}"></span>
+                            </div>
+                            <div class="grounding-controls">
+                                <button id="prev-grounding-btn-${entry.id}" onclick="app.onPrevGrounding()">◄ Previous Grounding</button>
+                                <span id="grounding-info-${entry.id}">Grounding: <span id="grounding-num-${entry.id}">1</span> / <span id="grounding-count-${entry.id}">-</span></span>
+                                <button id="next-grounding-btn-${entry.id}" onclick="app.onNextGrounding()">Next Grounding ►</button>
+                            </div>
+                        </div>
+                        <div class="pdf-controls">
+                            <button onclick="app.onPrevPage()">◄ Previous Page</button>
+                            <span id="page-info">Page: <span id="page-num">1</span> / <span id="page-count">-</span></span>
+                            <button onclick="app.onNextPage()">Next Page ►</button>
+                        </div>
+                        <div class="canvas-wrapper">
+                            <canvas id="pdf-canvas"></canvas>
+                            <canvas id="bounds-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </td>
         </tr>    
         <tr><td class="add-entry-cell" colspan="10">
             <button class="btn-add-entry" onclick="app.onAddEntry('${entry.id}')">
@@ -314,41 +347,7 @@ function setupPopoverPositioning() {
     })
 }
 
-async function onShowGroundings(ev, entryId, fieldPath) {
 
-    if (ev) {
-        ev.target.closest('td').focus()
-    }
-
-    const groundings = timelineService.getGroundings(entryId, fieldPath)
-    console.log('Groundings for', entryId, fieldPath, groundings)
-
-    if (!groundings || groundings.length === 0) {
-        alert('No groundings found for this field')
-        return
-    }
-
-    // Initialize navigation state
-    groundingNavigationState.entryId = entryId
-    groundingNavigationState.fieldPath = fieldPath
-    groundingNavigationState.allGroundings = groundings.filter(g => g.url) // Only valid groundings
-    groundingNavigationState.currentGroundingIndex = 0
-
-    if (groundingNavigationState.allGroundings.length === 0) {
-        alert('No valid PDF URL found for groundings')
-        return
-    }
-
-    // Show modal and PDF viewer
-    document.querySelector('.cell-research-modal').classList.add('visible')
-    document.querySelector('.pdf-viewer-container').style.display = 'block'
-
-    // Navigate to first grounding
-    await navigateToGrounding(0)
-
-    // Update grounding navigation UI
-    updateGroundingNavigationUI()
-}
 
 async function navigateToGrounding(index) {
     const grounding = groundingNavigationState.allGroundings[index]
@@ -416,20 +415,25 @@ function onPrevGrounding() {
 function updateGroundingNavigationUI() {
     const currentIdx = groundingNavigationState.currentGroundingIndex
     const total = groundingNavigationState.allGroundings.length
+    const entryId = groundingNavigationState.entryId
 
-    document.getElementById('grounding-num').textContent = currentIdx + 1
-    document.getElementById('grounding-count').textContent = total
-    document.getElementById('grounding-field').textContent = groundingNavigationState.fieldPath || ''
+    const groundingNumEl = document.getElementById(`grounding-num-${entryId}`)
+    const groundingCountEl = document.getElementById(`grounding-count-${entryId}`)
+    const groundingFieldEl = document.getElementById(`grounding-field-${entryId}`)
+
+    if (groundingNumEl) groundingNumEl.textContent = currentIdx + 1
+    if (groundingCountEl) groundingCountEl.textContent = total
+    if (groundingFieldEl) groundingFieldEl.textContent = groundingNavigationState.fieldPath || ''
 
     // Enable/disable navigation buttons
-    const prevBtn = document.getElementById('prev-grounding-btn')
-    const nextBtn = document.getElementById('next-grounding-btn')
+    const prevBtn = document.getElementById(`prev-grounding-btn-${entryId}`)
+    const nextBtn = document.getElementById(`next-grounding-btn-${entryId}`)
 
     if (prevBtn) prevBtn.disabled = currentIdx === 0
     if (nextBtn) nextBtn.disabled = currentIdx === total - 1
 
     // Show/hide grounding navigation - only show if more than 1 grounding
-    const groundingNav = document.querySelector('.grounding-navigation')
+    const groundingNav = document.getElementById(`grounding-nav-${entryId}`)
     if (groundingNav) {
         groundingNav.style.display = total > 1 ? 'flex' : 'none'
     }
@@ -481,7 +485,7 @@ function setupTableKeyboardNavigation() {
             const entryId = activeCell.dataset.entryId
             const fieldPath = activeCell.dataset.fieldPath
             if (entryId && fieldPath) {
-                onShowGroundings(null, entryId, fieldPath)
+                onToggleDetails(null, entryId, fieldPath)
             }
             return
         }

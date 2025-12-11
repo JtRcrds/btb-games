@@ -159,6 +159,14 @@ button {
 .timeline-table td:not(.actions-cell):hover button {
     opacity: 1;
 }
+
+.timeline-table td:not(.actions-cell) button[title="Show/Hide Details"] {
+    color: var(--grounding-highlight);
+}
+
+.timeline-table td:not(.actions-cell) button[title="Show/Hide Details"]:hover {
+    transform: scale(1.1);
+}
 .timeline-table td.add-entry-cell {
     text-align: center;
     background-color: var(--table-cell-bg);
@@ -259,85 +267,77 @@ button {
     border-color: yellow;
 }
 
-/* Draggable Research Modal */
-.cell-research-modal {
-    position: fixed;
-    top: 100px;
-    right: 20px;
-    width: 800px;
-    max-width: 90vw;
-    max-height: 80vh;
+/* Collapsible Research Row */
+.research-row {
+    display: none !important;
+}
+
+.research-row.visible {
+    display: table-row !important;
+}
+
+.research-cell {
+    padding: 0 !important;
     background-color: var(--table-bg);
-    border: 2px solid var(--table-border);
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    display: none;
-    flex-direction: column;
+    border-top: 3px solid var(--grounding-highlight);
+    height: 0;
     overflow: hidden;
 }
 
-.cell-research-modal.visible {
-    display: flex;
+.research-row.visible .research-cell {
+    height: auto;
 }
 
-.modal-drag-handle {
-    background-color: var(--table-header-bg);
-    color: var(--table-header-text);
-    padding: 10px 15px;
-    cursor: move;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 1px solid var(--table-border);
-}
-
-.drag-indicator {
-    font-size: 16px;
-    opacity: 0.6;
-    letter-spacing: -2px;
-}
-
-.modal-drag-handle span:nth-child(2) {
-    flex: 1;
-    font-weight: 600;
-}
-
-.modal-close-btn {
-    background: transparent;
-    border: none;
-    color: var(--table-header-text);
-    font-size: 24px;
-    cursor: pointer;
+.research-panel {
     padding: 0;
-    width: 24px;
-    height: 24px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.8;
-    transition: opacity 0.2s;
+    margin: 0;
+    background-color: var(--table-bg);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
 }
 
-.modal-close-btn:hover {
+.research-panel.expanded {
+    padding: 20px;
+    max-height: 600px;
+    overflow-y: auto;
     opacity: 1;
+}
+
+.research-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--table-border);
+}
+
+.research-header h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 18px;
+}
+
+.close-research-btn {
+    background: transparent;
+    border: 1px solid var(--table-border);
+    color: var(--text-color);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.close-research-btn:hover {
+    background-color: var(--table-border);
 }
 
 /* PDF Viewer Styles */
 .pdf-viewer-container {
-    padding: 20px;
     background-color: var(--table-bg);
-    overflow-y: auto;
-    overflow-x: hidden;
-    flex: 1;
-}
-
-.pdf-viewer-container h2 {
-    margin: 0 0 20px 0;
-    color: var(--text-color);
-    font-size: 20px;
 }
 
 .grounding-navigation {
