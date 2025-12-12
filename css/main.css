@@ -148,7 +148,7 @@ button {
     );
 }
 
-.timeline-table td:not(.actions-cell):not(.add-entry-cell) button {
+.timeline-table td:not(.actions-cell):not(.add-entry-cell):not(.research-cell) button {
     border: 0;
     background-color: transparent;
     float: right;
@@ -156,7 +156,7 @@ button {
     transition: opacity 0.2s ease;
 }
 
-.timeline-table td:not(.actions-cell):hover button {
+.timeline-table td:not(.actions-cell):not(.research-cell):hover button {
     opacity: 1;
 }
 
@@ -384,6 +384,13 @@ button {
     transform: translateX(2px);
 }
 
+.doc-card.selected {
+    border-color: var(--grounding-highlight);
+    border-width: 2px;
+    background-color: var(--grounding-highlight-bg);
+    box-shadow: 0 3px 8px rgba(255, 107, 53, 0.3);
+}
+
 .doc-card-header {
     display: flex;
     justify-content: space-between;
@@ -490,6 +497,11 @@ button {
     flex-wrap: wrap;
 }
 
+.grounding-controls > span {
+    color: white;
+    font-weight: 500;
+}
+
 .grounding-controls button {
     padding: 8px 16px;
     background-color: var(--grounding-highlight);
@@ -499,6 +511,7 @@ button {
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
+    opacity: 1;
     transition: all 0.2s ease;
 }
 
@@ -515,6 +528,19 @@ button {
     transform: none;
 }
 
+.pdf-doc-info {
+    color: var(--text-color);
+    font-size: 14px;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background-color: var(--table-cell-bg);
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+}
+
+.pdf-doc-info strong {
+    color: var(--grounding-highlight);
+}
 
 .pdf-controls {
     display: flex;
@@ -526,17 +552,20 @@ button {
 
 .pdf-controls button {
     padding: 8px 16px;
-    background-color: var(--table-header-bg);
-    color: var(--table-header-text);
+    background-color: transparent !important;
+    color: var(--text-color) !important;
     border: 1px solid var(--table-border);
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 500;
+    opacity: 1 !important;
     transition: all 0.2s ease;
 }
 
-.pdf-controls button:hover {
-    opacity: 0.8;
+.pdf-controls button:hover:not(:disabled) {
+    opacity: 0.85;
+    transform: translateY(-1px);
 }
 
 .pdf-controls button:disabled {

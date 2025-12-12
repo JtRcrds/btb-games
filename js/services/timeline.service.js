@@ -22,10 +22,68 @@ const cellState = {
     confirmed: 'confirmed'
 }
 
-const docUrlMap = {
-    'doc-101': './pdf/doc1.pdf'
-}
-
+const docs = [
+    {
+        id: 'doc1',
+        types: [DOC_TYPES.ENGINE_DELIVERY_DOC],
+        description: "Engine delivery documentation",
+        date: '21-Jun-2020',
+        issuer: {
+            type: 'Operator',
+            name: 'ACME Engines',
+        },
+        esns: ['ENG123456', 'ENG654321'],
+        url: './pdf/doc1.pdf',
+    },
+    {
+        id: 'doc2',
+        types: [DOC_TYPES.OP_ON_OFF_LOG, DOC_TYPES.ENGINE_DELIVERY_DOC],
+        description: "Operation on/off log with engine delivery details",
+        date: '21-Jun-2020',
+        issuer: {
+            type: 'Operator',
+            name: 'ACME Engines',
+        },
+        esns: [],
+        url: './pdf/doc2.pdf',
+    },
+    {
+        id: 'doc3',
+        types: [DOC_TYPES.PART_REMOVAL_TAG],
+        description: "Part removal tag documentation",
+        date: '16-Aug-2021',
+        issuer: {
+            type: 'Shop',
+            name: 'Best Repairs Ltd.',
+        },
+        esns: [],
+        url: './pdf/doc3.pdf',
+    },
+    {
+        id: 'doc4',
+        types: [DOC_TYPES.ENGINE_DELIVERY_DOC, DOC_TYPES.PART_REMOVAL_TAG],
+        description: "Engine delivery documentation with part removal tag",
+        date: '11-Feb-2022',
+        issuer: {
+            type: 'OEM',
+            name: 'Global Engines Inc.',
+        },
+        esns: ['ENG123456'],
+        url: './pdf/doc4.pdf',
+    },
+    {
+        id: 'doc5',
+        types: [DOC_TYPES.OP_ON_OFF_LOG],
+        description: "Operation on/off log",
+        date: '14-Mar-2023',
+        issuer: {
+            type: 'OEM',
+            name: 'Global Engines Inc.',
+        },
+        esns: ['ENG123456'],
+        url: './pdf/doc5.pdf',
+    }
+]
 
 
 const demoData = _createDemoData()
@@ -48,9 +106,14 @@ function getGroundings(entryId, fieldPath) {
 
     // Map cFileId to actual URL
     const groundingsWithUrls = field.groundings.map(grounding => {
+        const doc = getDocById(grounding.docId)
+
         return {
             ...grounding,
-            url: docUrlMap[grounding.docId] || null
+            doc : {
+                name: doc.description,
+                url: doc.url
+            }
         }
     })
 
@@ -357,72 +420,15 @@ function _createEntry({
 }
 
 
-function getDocs() {
+function getDocById(docId) {
+    return docs.find(doc => doc.id === docId) || null
+}
 
-    // Hard-coded classification results
-    // 15 pages split into 5 documents of 3 pages each
-    return [
-        {
-            id: 'doc-101',
-            types: [DOC_TYPES.ENGINE_DELIVERY_DOC],
-            description: "Engine delivery documentation",
-            date: '21-Jun-2020',
-            issuer: {
-                type: 'Operator',
-                name: 'ACME Engines',
-            },
-            esns: ['ENG123456', 'ENG654321'],
-            pages: [1, 2, 3],
-        },
-        {
-            id: 'doc-102',
-            types: [DOC_TYPES.OP_ON_OFF_LOG, DOC_TYPES.ENGINE_DELIVERY_DOC],
-            description: "Operation on/off log with engine delivery details",
-            date: '21-Jun-2020',
-            issuer: {
-                type: 'Operator',
-                name: 'ACME Engines',
-            },
-            esns: [],
-            pages: [4, 5, 6],
-        },
-        {
-            id: 'doc-103',
-            types: [DOC_TYPES.PART_REMOVAL_TAG],
-            description: "Part removal tag documentation",
-            date: '16-Aug-2021',
-            issuer: {
-                type: 'Shop',
-                name: 'Best Repairs Ltd.',
-            },
-            esns: [],
-            pages: [7, 8, 9],
-        },
-        {
-            id: 'doc-104',
-            types: [DOC_TYPES.ENGINE_DELIVERY_DOC, DOC_TYPES.PART_REMOVAL_TAG],
-            description: "Engine delivery documentation with part removal tag",
-            date: '11-Feb-2022',
-            issuer: {
-                type: 'OEM',
-                name: 'Global Engines Inc.',
-            },
-            esns: ['ENG123456'],
-            pages: [10, 11, 12],
-        },
-        {
-            id: 'doc-105',
-            types: [DOC_TYPES.OP_ON_OFF_LOG],
-            description: "Operation on/off log",
-            date: '14-Mar-2023',
-            issuer: {
-                type: 'OEM',
-                name: 'Global Engines Inc.',
-            },
-            esns: ['ENG123456'],
-            pages: [13, 14, 15],
-        }
-    ]
+function getDocs(entryId, fieldPath) {
+    const groundings = getGroundings(entryId, fieldPath)
+    const docIds = [...new Set(groundings.map(g => g.docId))] // Unique docIds
+    const relatedDocs = docs.filter(doc => docIds.includes(doc.id))
+    return relatedDocs
 }
 
 function _createDemoData() {
@@ -461,60 +467,62 @@ function _createDemoData() {
         ]
 
     demoData[0].dateRange.start.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 145, y1: 498, x2: 255, y2: 523 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 145, y1: 498, x2: 255, y2: 523 }),
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 1, docId: 'doc2', x1: 145, y1: 498, x2: 255, y2: 523 }),
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc2', x1: 145, y1: 498, x2: 255, y2: 523 })
     ]
     demoData[0].dateRange.end.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 140, y1: 465, x2: 255, y2: 490 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 140, y1: 465, x2: 255, y2: 490 })
     ]
     demoData[0].engine.esn.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 132, y1: 595, x2: 198, y2: 620 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 132, y1: 595, x2: 198, y2: 620 })
     ]
     demoData[0].engine.esn.edits = [
         _createEdit({ at: '2025-06-10T11:00:00Z', by: 'user1', from: '577352', to: '577351' }),
         _createEdit({ at: '2025-06-10T10:00:00Z', by: 'user2', from: '577357', to: '577352' })
     ]
     demoData[0].engine.totalHourRange.end.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 135, y1: 370, x2: 185, y2: 395 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 135, y1: 370, x2: 185, y2: 395 })
     ]
     demoData[0].engine.totalCycleRange.end.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 140, y1: 335, x2: 180, y2: 360 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 140, y1: 335, x2: 180, y2: 360 })
     ]
     demoData[0].part.totalHourRange.end.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 135, y1: 370, x2: 185, y2: 395 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 135, y1: 370, x2: 185, y2: 395 })
     ]
     demoData[0].part.totalCycleRange.end.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 140, y1: 335, x2: 180, y2: 360 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 140, y1: 335, x2: 180, y2: 360 })
     ]
     demoData[0].op.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 280, y1: 745, x2: 325, y2: 770 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 280, y1: 745, x2: 325, y2: 770 })
     ]
 
     demoData[1].dateRange.start.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 145, y1: 498, x2: 265, y2: 523 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc1', x1: 145, y1: 498, x2: 265, y2: 523 })
     ]
     demoData[1].dateRange.end.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 140, y1: 465, x2: 255, y2: 490 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc1', x1: 140, y1: 465, x2: 255, y2: 490 })
     ]
     demoData[1].engine.esn.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 132, y1: 595, x2: 198, y2: 620 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc1', x1: 132, y1: 595, x2: 198, y2: 620 })
     ]
     demoData[1].engine.totalHourRange.end.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 135, y1: 370, x2: 185, y2: 395 }),
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 135, y1: 370, x2: 195, y2: 395 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 135, y1: 370, x2: 185, y2: 395 }),
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc1', x1: 135, y1: 370, x2: 195, y2: 395 })
     ]
     demoData[1].engine.totalCycleRange.end.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 70, y1: 400, x2: 220, y2: 425 }),
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc-101', x1: 140, y1: 335, x2: 180, y2: 360 }),
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 140, y1: 335, x2: 192, y2: 360 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 70, y1: 400, x2: 220, y2: 425 }),
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 2, docId: 'doc1', x1: 140, y1: 335, x2: 180, y2: 360 }),
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc1', x1: 140, y1: 335, x2: 192, y2: 360 })
     ]
     demoData[1].part.totalHourRange.end.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 135, y1: 370, x2: 195, y2: 395 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc1', x1: 135, y1: 370, x2: 195, y2: 395 })
     ]
     demoData[1].part.totalCycleRange.end.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 140, y1: 335, x2: 202, y2: 360 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc1', x1: 140, y1: 335, x2: 202, y2: 360 })
     ]
     demoData[1].op.groundings = [
-        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc-101', x1: 280, y1: 745, x2: 400, y2: 770 })
+        _createGrounding({ cFileId: 'cfile-101', pageNum: 3, docId: 'doc1', x1: 280, y1: 745, x2: 400, y2: 770 })
     ]
 
 

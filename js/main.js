@@ -23,7 +23,8 @@ window.app = {
 const pdfState = {
     currentPageNum: 1,
     totalPages: 0,
-    currentPdfUrl: null
+    currentPdfUrl: null,
+    currentDocName: null
 }
 
 const groundingNavigationState = {
@@ -174,8 +175,9 @@ async function renderDocumentList(entryId, groundings) {
     const docListContainer = document.querySelector(`#research-row-${entryId} .doc-list`)
     if (!docListContainer) return
 
-    // Get all docs from the service
-    const allDocs = await timelineService.getDocs()
+    // Get relevant docs from the service using the current field path
+    const fieldPath = groundingNavigationState.fieldPath
+    const allDocs = await timelineService.getDocs(entryId, fieldPath)
 
     // Extract unique document IDs from groundings
     const docIdsInGroundings = [...new Set(groundings.map(g => g.docId))]
@@ -188,13 +190,18 @@ async function renderDocumentList(entryId, groundings) {
         return
     }
 
+    // Get current document ID from current grounding
+    const currentGrounding = groundingNavigationState.allGroundings[groundingNavigationState.currentGroundingIndex]
+    const currentDocId = currentGrounding?.docId
+
     // Render document cards
     const docCards = relevantDocs.map(doc => {
         const primaryType = doc.types[0] || 'Unknown'
         const additionalTypes = doc.types.length > 1 ? ` +${doc.types.length - 1} more` : ''
+        const isSelected = doc.id === currentDocId ? 'selected' : ''
         
         return `
-            <div class="doc-card" onclick="app.onSelectDoc('${doc.id}', '${entryId}')">
+            <div class="doc-card ${isSelected}" data-doc-id="${doc.id}" onclick="app.onSelectDoc('${doc.id}', '${entryId}')">
                 <div class="doc-card-header">
                     <div class="doc-type">${primaryType}${additionalTypes}</div>
                     <div class="doc-date">${doc.date}</div>
@@ -204,7 +211,6 @@ async function renderDocumentList(entryId, groundings) {
                     <strong>${doc.issuer.type}:</strong> ${doc.issuer.name}
                 </div>
                 ${doc.esns.length > 0 ? `<div class="doc-esns"><strong>ESNs:</strong> ${doc.esns.join(', ')}</div>` : ''}
-                <div class="doc-pages">Pages: ${doc.pages.join(', ')}</div>
             </div>
         `
     }).join('')
@@ -214,7 +220,8 @@ async function renderDocumentList(entryId, groundings) {
 
 async function onSelectDoc(docId, entryId) {
     // Get all docs to find the selected one
-    const allDocs = await timelineService.getDocs()
+    const fieldPath = groundingNavigationState.fieldPath
+    const allDocs = await timelineService.getDocs(entryId, fieldPath)
     const selectedDoc = allDocs.find(doc => doc.id === docId)
     
     if (!selectedDoc) return
@@ -230,6 +237,9 @@ async function onSelectDoc(docId, entryId) {
         groundingNavigationState.currentGroundingIndex = firstGroundingIndex
         await navigateToGrounding(firstGroundingIndex)
         updateGroundingNavigationUI()
+        
+        // Refresh document list to update selected state
+        await renderDocumentList(entryId, groundingNavigationState.allGroundings)
     }
 }
 
@@ -410,6 +420,9 @@ async function renderEntries() {
                                     <button id="next-grounding-btn-${entry.id}" onclick="app.onNextGrounding()">Next Grounding ►</button>
                                 </div>
                             </div>
+                            <div class="pdf-doc-info">
+                                <strong>Document:</strong> <span id="doc-name">-</span>
+                            </div>
                             <div class="pdf-controls">
                                 <button onclick="app.onPrevPage()">◄ Previous Page</button>
                                 <span id="page-info">Page: <span id="page-num">1</span> / <span id="page-count">-</span></span>
@@ -473,12 +486,13 @@ async function navigateToGrounding(index) {
     const entryId = groundingNavigationState.entryId
 
     // Check if we need to load a different PDF
-    if (pdfState.currentPdfUrl !== grounding.url) {
-        const result = await pdfService.loadPDF(grounding.url)
+    if (pdfState.currentPdfUrl !== grounding.doc.url) {
+        const result = await pdfService.loadPDF(grounding.doc.url)
 
         if (result.success) {
-            pdfState.currentPdfUrl = grounding.url
+            pdfState.currentPdfUrl = grounding.doc.url
             pdfState.totalPages = result.numPages
+            pdfState.currentDocName = grounding.doc.name
         } else {
             alert('Error loading PDF: ' + result.error)
             return
@@ -495,7 +509,7 @@ async function navigateToGrounding(index) {
 
     // Find all groundings on the current page
     const groundingsOnThisPage = groundingNavigationState.allGroundings.filter(
-        g => g.url === grounding.url && g.pageNum === grounding.pageNum
+        g => g.doc.url === grounding.doc.url && g.pageNum === grounding.pageNum
     )
 
     // Draw all groundings on this page
@@ -586,6 +600,10 @@ function onPrevPage() {
 function renderPageInfo() {
     document.getElementById('page-num').textContent = pdfState.currentPageNum
     document.getElementById('page-count').textContent = pdfState.totalPages
+    const docNameEl = document.getElementById('doc-name')
+    if (docNameEl && pdfState.currentDocName) {
+        docNameEl.textContent = pdfState.currentDocName
+    }
 }
 
 function setupTableKeyboardNavigation() {
