@@ -70,7 +70,7 @@ function onToggleResearchPanel(entryId) {
     }, 300)
     
     // Clear selected cell styling
-    document.querySelectorAll('.cell-with-groundings.selected').forEach(cell => {
+    document.querySelectorAll('.data-cell.selected').forEach(cell => {
         cell.classList.remove('selected')
     })
 }
@@ -157,13 +157,13 @@ async function loadGroundingsForField(entryId, fieldPath) {
 
 function updateSelectedCell(entryId, fieldPath) {
     // Remove 'selected' class from all cells
-    document.querySelectorAll('.cell-with-groundings.selected').forEach(cell => {
+    document.querySelectorAll('.data-cell.selected').forEach(cell => {
         cell.classList.remove('selected')
     })
     
     // Add 'selected' class to the current cell
     const currentCell = document.querySelector(
-        `.cell-with-groundings[data-entry-id="${entryId}"][data-field-path="${fieldPath}"]`
+        `.data-cell[data-entry-id="${entryId}"][data-field-path="${fieldPath}"]`
     )
     if (currentCell) {
         currentCell.classList.add('selected')
@@ -209,7 +209,7 @@ async function renderDocumentList(entryId, groundings) {
         `
     }).join('')
 
-    docListContainer.innerHTML = `<div class="doc-list-header"><h4>Related Documents</h4></div>${docCards}`
+    docListContainer.innerHTML = `<div class="doc-list-header"><h4>Grounding Documents</h4></div>${docCards}`
 }
 
 async function onSelectDoc(docId, entryId) {
@@ -324,35 +324,35 @@ async function renderEntries() {
     const strHTMLs = entries.map(entry => {
         return `
         <tr>
-            <td rowspan="2" tabindex="0" class="cell-with-groundings ${entry.op.state}" data-entry-id="${entry.id}" data-field-path="op">
+            <td rowspan="2" tabindex="0" class="data-cell ${entry.op.state}" data-entry-id="${entry.id}" data-field-path="op">
                 ${entry.op.value}
                 ${getCellButtons(entry, 'op', entry.op.value)}
             </td>
             <td>
                 ON
             </td>
-            <td class="cell-with-groundings ${entry.dateRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start">
+            <td class="data-cell ${entry.dateRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start">
                 ${entry.dateRange.start.value}
                 ${getCellButtons(entry, 'dateRange.start', entry.dateRange.start.value)}
             </td>
-            <td class="cell-with-groundings ${entry.engine.esn.state}" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn">
+            <td class="data-cell ${entry.engine.esn.state}" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn">
                 ${entry.engine.esn.value}
                 ${getCellButtons(entry, 'engine.esn', entry.engine.esn.value)}
             </td>
-            <td class="cell-with-groundings ${entry.engine.totalCycleRange.start.state}" tabindex="0">
+            <td class="data-cell ${entry.engine.totalCycleRange.start.state}" tabindex="0">
                 ${entry.engine.totalCycleRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalCycleRange.start', entry.engine.totalCycleRange.start.value)}
         
             </td>
-            <td class="cell-with-groundings ${entry.engine.totalHourRange.start.state}" tabindex="0">
+            <td class="data-cell ${entry.engine.totalHourRange.start.state}" tabindex="0">
                 ${entry.engine.totalHourRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalHourRange.start', entry.engine.totalHourRange.start.value)}
             </td>
-            <td class="cell-with-groundings ${entry.part.totalHourRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.start">
+            <td class="data-cell ${entry.part.totalHourRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.start">
                 ${entry.part.totalHourRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalHourRange.start', entry.part.totalHourRange.start.value)}
             </td>
-            <td class="cell-with-groundings ${entry.part.totalCycleRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.start">
+            <td class="data-cell ${entry.part.totalCycleRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.start">
                 ${entry.part.totalCycleRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalCycleRange.start', entry.part.totalCycleRange.start.value)}
             </td>
@@ -367,23 +367,23 @@ async function renderEntries() {
             <td>
                 OFF
             </td>
-            <td class="cell-with-groundings ${entry.dateRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end">
+            <td class="data-cell ${entry.dateRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end">
                ${entry.dateRange.end.value}
                ${getCellButtons(entry, 'dateRange.end', entry.dateRange.end.value)}
             </td>
-            <td class="cell-with-groundings ${entry.engine.totalCycleRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end">
+            <td class="data-cell ${entry.engine.totalCycleRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end">
                 ${entry.engine.totalCycleRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalCycleRange.end', entry.engine.totalCycleRange.end.value)}
             </td>            
-            <td class="cell-with-groundings ${entry.engine.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end">
+            <td class="data-cell ${entry.engine.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end">
                 ${entry.engine.totalHourRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalHourRange.end', entry.engine.totalHourRange.end.value)}
             </td>
-            <td class="cell-with-groundings ${entry.part.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.end">
+            <td class="data-cell ${entry.part.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.end">
                 ${entry.part.totalHourRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalHourRange.end', entry.part.totalHourRange.end.value)}
             </td>
-            <td class="cell-with-groundings ${entry.part.totalCycleRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.end">
+            <td class="data-cell ${entry.part.totalCycleRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.end">
                 ${entry.part.totalCycleRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalCycleRange.end', entry.part.totalCycleRange.end.value)}
             </td>
@@ -593,7 +593,7 @@ function setupTableKeyboardNavigation() {
 
     // Add click handler for cells
     table.addEventListener('click', (e) => {
-        const cell = e.target.closest('.cell-with-groundings')
+        const cell = e.target.closest('.data-cell')
         
         // Ignore clicks on buttons inside cells
         if (e.target.closest('button')) {
@@ -618,7 +618,7 @@ function setupTableKeyboardNavigation() {
         const activeCell = document.activeElement
 
         // Only handle if we're focused on a cell with groundings
-        if (!activeCell.classList.contains('cell-with-groundings')) {
+        if (!activeCell.classList.contains('data-cell')) {
             return
         }
 
@@ -640,7 +640,7 @@ function setupTableKeyboardNavigation() {
 
         e.preventDefault()
 
-        const allCells = Array.from(table.querySelectorAll('.cell-with-groundings[tabindex="0"]'))
+        const allCells = Array.from(table.querySelectorAll('.data-cell[tabindex="0"]'))
         const currentIndex = allCells.indexOf(activeCell)
 
         if (currentIndex === -1) return
@@ -659,7 +659,7 @@ function setupTableKeyboardNavigation() {
                 const currentRow = activeCell.closest('tr')
                 const nextRow = currentRow.nextElementSibling?.nextElementSibling // Skip to next entry (2 rows)
                 if (nextRow) {
-                    const cellsInNextRow = Array.from(nextRow.querySelectorAll('.cell-with-groundings[tabindex="0"]'))
+                    const cellsInNextRow = Array.from(nextRow.querySelectorAll('.data-cell[tabindex="0"]'))
                     nextCell = cellsInNextRow[0] // Move to first cell in next entry
                 }
                 break
@@ -667,7 +667,7 @@ function setupTableKeyboardNavigation() {
                 // Navigate to roughly the same column in previous row
                 const prevRow = activeCell.closest('tr').previousElementSibling?.previousElementSibling
                 if (prevRow) {
-                    const cellsInPrevRow = Array.from(prevRow.querySelectorAll('.cell-with-groundings[tabindex="0"]'))
+                    const cellsInPrevRow = Array.from(prevRow.querySelectorAll('.data-cell[tabindex="0"]'))
                     nextCell = cellsInPrevRow[cellsInPrevRow.length - 1] // Move to last cell in prev entry
                 }
                 break

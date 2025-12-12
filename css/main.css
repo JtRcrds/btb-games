@@ -112,18 +112,18 @@ button {
 
 
 
-.timeline-table .cell-with-groundings:hover {
+.timeline-table .data-cell:hover {
     cursor: pointer;
     color: var(--table-cell-text-highlite);
 }
 
-.timeline-table .cell-with-groundings.selected {
+.timeline-table .data-cell.selected {
     outline: 2px solid var(--grounding-highlight);
     outline-offset: -2px;
     background-color: var(--grounding-highlight-bg);
 }
 
-.timeline-table .cell-with-groundings:focus-visible {
+.timeline-table .data-cell:focus-visible {
     outline: 2px solid var(--grounding-highlight);
     outline-offset: -2px;
 }
