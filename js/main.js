@@ -15,7 +15,9 @@ window.app = {
     onUndoEdit,
     onAddEntry,
     onDownloadCSV,
-    onSignOff
+    onSignOff,
+    onToggleResearchPanel,
+    onSelectDoc
 }
 
 const pdfState = {
@@ -54,6 +56,18 @@ function onToggleTheme() {
     // Save preference to localStorage
     const isDark = root.classList.contains('dark-theme')
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
+}
+
+function onToggleResearchPanel(entryId) {
+    const researchRow = document.getElementById(`research-row-${entryId}`)
+    const researchPanel = document.getElementById(`research-panel-${entryId}`)
+    
+    if (!researchRow || !researchPanel) return
+    
+    researchPanel.classList.remove('expanded')
+    setTimeout(() => {
+        researchRow.classList.remove('visible')
+    }, 300)
 }
 
 async function onToggleDetails(ev, entryId, fieldPath) {
@@ -116,6 +130,72 @@ async function onToggleDetails(ev, entryId, fieldPath) {
         await navigateToGrounding(0)
 
         // Update grounding navigation UI
+        updateGroundingNavigationUI()
+
+        // Render document list
+        await renderDocumentList(entryId, groundings)
+    }
+}
+
+async function renderDocumentList(entryId, groundings) {
+    const docListContainer = document.querySelector(`#research-row-${entryId} .doc-list`)
+    if (!docListContainer) return
+
+    // Get all docs from the service
+    const allDocs = await timelineService.getDocs()
+
+    // Extract unique document IDs from groundings
+    const docIdsInGroundings = [...new Set(groundings.map(g => g.docId))]
+
+    // Filter docs that appear in groundings
+    const relevantDocs = allDocs.filter(doc => docIdsInGroundings.includes(doc.id))
+
+    if (relevantDocs.length === 0) {
+        docListContainer.innerHTML = '<p class="no-docs">No documents found</p>'
+        return
+    }
+
+    // Render document cards
+    const docCards = relevantDocs.map(doc => {
+        const primaryType = doc.types[0] || 'Unknown'
+        const additionalTypes = doc.types.length > 1 ? ` +${doc.types.length - 1} more` : ''
+        
+        return `
+            <div class="doc-card" onclick="app.onSelectDoc('${doc.id}', '${entryId}')">
+                <div class="doc-card-header">
+                    <div class="doc-type">${primaryType}${additionalTypes}</div>
+                    <div class="doc-date">${doc.date}</div>
+                </div>
+                <div class="doc-description">${doc.description}</div>
+                <div class="doc-issuer">
+                    <strong>${doc.issuer.type}:</strong> ${doc.issuer.name}
+                </div>
+                ${doc.esns.length > 0 ? `<div class="doc-esns"><strong>ESNs:</strong> ${doc.esns.join(', ')}</div>` : ''}
+                <div class="doc-pages">Pages: ${doc.pages.join(', ')}</div>
+            </div>
+        `
+    }).join('')
+
+    docListContainer.innerHTML = `<div class="doc-list-header"><h4>Related Documents</h4></div>${docCards}`
+}
+
+async function onSelectDoc(docId, entryId) {
+    // Get all docs to find the selected one
+    const allDocs = await timelineService.getDocs()
+    const selectedDoc = allDocs.find(doc => doc.id === docId)
+    
+    if (!selectedDoc) return
+
+    // Get groundings for the current field that belong to this document
+    const currentGroundings = groundingNavigationState.allGroundings.filter(g => g.docId === docId)
+    
+    if (currentGroundings.length === 0) return
+
+    // Update navigation state to focus on this document's groundings
+    const firstGroundingIndex = groundingNavigationState.allGroundings.findIndex(g => g.docId === docId)
+    if (firstGroundingIndex !== -1) {
+        groundingNavigationState.currentGroundingIndex = firstGroundingIndex
+        await navigateToGrounding(firstGroundingIndex)
         updateGroundingNavigationUI()
     }
 }
@@ -283,25 +363,29 @@ async function renderEntries() {
                         <h3>Research Panel</h3>
                         <button class="close-research-btn" onclick="app.onToggleResearchPanel('${entry.id}')">×</button>
                     </div>
-                    <div class="pdf-viewer-container" id="pdf-container-${entry.id}">
-                        <div class="grounding-navigation" id="grounding-nav-${entry.id}" style="display: none;">
-                            <div class="grounding-info">
-                                <strong>Field:</strong> <span id="grounding-field-${entry.id}"></span>
-                            </div>
-                            <div class="grounding-controls">
-                                <button id="prev-grounding-btn-${entry.id}" onclick="app.onPrevGrounding()">◄ Previous Grounding</button>
-                                <span id="grounding-info-${entry.id}">Grounding: <span id="grounding-num-${entry.id}">1</span> / <span id="grounding-count-${entry.id}">-</span></span>
-                                <button id="next-grounding-btn-${entry.id}" onclick="app.onNextGrounding()">Next Grounding ►</button>
-                            </div>
+                    <div class="research-content">
+                        <div class="doc-list">
                         </div>
-                        <div class="pdf-controls">
-                            <button onclick="app.onPrevPage()">◄ Previous Page</button>
-                            <span id="page-info">Page: <span id="page-num">1</span> / <span id="page-count">-</span></span>
-                            <button onclick="app.onNextPage()">Next Page ►</button>
-                        </div>
-                        <div class="canvas-wrapper">
-                            <canvas id="pdf-canvas"></canvas>
-                            <canvas id="bounds-canvas"></canvas>
+                        <div class="pdf-viewer-container" id="pdf-container-${entry.id}">
+                            <div class="grounding-navigation" id="grounding-nav-${entry.id}" style="display: none;">
+                                <div class="grounding-info">
+                                    <strong>Field:</strong> <span id="grounding-field-${entry.id}"></span>
+                                </div>
+                                <div class="grounding-controls">
+                                    <button id="prev-grounding-btn-${entry.id}" onclick="app.onPrevGrounding()">◄ Previous Grounding</button>
+                                    <span id="grounding-info-${entry.id}">Grounding: <span id="grounding-num-${entry.id}">1</span> / <span id="grounding-count-${entry.id}">-</span></span>
+                                    <button id="next-grounding-btn-${entry.id}" onclick="app.onNextGrounding()">Next Grounding ►</button>
+                                </div>
+                            </div>
+                            <div class="pdf-controls">
+                                <button onclick="app.onPrevPage()">◄ Previous Page</button>
+                                <span id="page-info">Page: <span id="page-num">1</span> / <span id="page-count">-</span></span>
+                                <button onclick="app.onNextPage()">Next Page ►</button>
+                            </div>
+                            <div class="canvas-wrapper">
+                                <canvas id="pdf-canvas-${entry.id}"></canvas>
+                                <canvas id="bounds-canvas-${entry.id}"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -353,6 +437,8 @@ async function navigateToGrounding(index) {
     const grounding = groundingNavigationState.allGroundings[index]
     if (!grounding) return
 
+    const entryId = groundingNavigationState.entryId
+
     // Check if we need to load a different PDF
     if (pdfState.currentPdfUrl !== grounding.url) {
         const result = await pdfService.loadPDF(grounding.url)
@@ -372,7 +458,7 @@ async function navigateToGrounding(index) {
 
     // Clear and render page
     pdfService.clearBounds()
-    await pdfService.renderPage(pdfState.currentPageNum)
+    await pdfService.renderPage(pdfState.currentPageNum, 1.5, entryId)
 
     // Find all groundings on the current page
     const groundingsOnThisPage = groundingNavigationState.allGroundings.filter(
@@ -442,8 +528,9 @@ function updateGroundingNavigationUI() {
 
 
 async function renderCurrentPage() {
+    const entryId = groundingNavigationState.entryId
     pdfService.clearBounds()
-    await pdfService.renderPage(pdfState.currentPageNum)
+    await pdfService.renderPage(pdfState.currentPageNum, 1.5, entryId)
 
 }
 
@@ -753,4 +840,9 @@ function onDownloadCSV() {
 
 function onSignOff() {
     alert('Signing off...')
+}
+
+function initDraggableModal() {
+    // Placeholder for drag functionality on modal dialogs
+    // Can be implemented later if needed
 }

@@ -9,6 +9,7 @@ export const pdfService = {
 let pdfDoc = null
 let currentPage = null
 let currentViewport = null
+let currentEntryId = null
 
 // Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
@@ -33,7 +34,7 @@ async function loadPDF(url) {
     }
 }
 
-async function renderPage(pageNumber, scale = 1.5) {
+async function renderPage(pageNumber, scale = 1.5, entryId = null) {
     if (!pdfDoc) {
         throw new Error('PDF not loaded')
     }
@@ -42,8 +43,19 @@ async function renderPage(pageNumber, scale = 1.5) {
         currentPage = await pdfDoc.getPage(pageNumber)
         currentViewport = currentPage.getViewport({ scale })
 
-        const pdfCanvas = document.getElementById('pdf-canvas')
-        const boundsCanvas = document.getElementById('bounds-canvas')
+        // Store the current entry ID for use in other functions
+        if (entryId) {
+            currentEntryId = entryId
+        }
+
+        const canvasSuffix = currentEntryId ? `-${currentEntryId}` : ''
+        const pdfCanvas = document.getElementById(`pdf-canvas${canvasSuffix}`)
+        const boundsCanvas = document.getElementById(`bounds-canvas${canvasSuffix}`)
+        
+        if (!pdfCanvas || !boundsCanvas) {
+            throw new Error('Canvas elements not found')
+        }
+        
         const context = pdfCanvas.getContext('2d')
 
         // Set canvas dimensions
@@ -78,7 +90,13 @@ function drawBounds(bounds, options = {}) {
         throw new Error('No page rendered')
     }
 
-    const boundsCanvas = document.getElementById('bounds-canvas')
+    const canvasSuffix = currentEntryId ? `-${currentEntryId}` : ''
+    const boundsCanvas = document.getElementById(`bounds-canvas${canvasSuffix}`)
+    
+    if (!boundsCanvas) {
+        throw new Error('Bounds canvas not found')
+    }
+    
     const ctx = boundsCanvas.getContext('2d')
 
     const {
@@ -118,7 +136,13 @@ function drawBounds(bounds, options = {}) {
 }
 
 function clearBounds() {
-    const boundsCanvas = document.getElementById('bounds-canvas')
+    const canvasSuffix = currentEntryId ? `-${currentEntryId}` : ''
+    const boundsCanvas = document.getElementById(`bounds-canvas${canvasSuffix}`)
+    
+    if (!boundsCanvas) {
+        return // Nothing to clear
+    }
+    
     const ctx = boundsCanvas.getContext('2d')
     ctx.clearRect(0, 0, boundsCanvas.width, boundsCanvas.height)
 }

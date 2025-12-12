@@ -335,6 +335,125 @@ button {
     background-color: var(--table-border);
 }
 
+/* Research Content Layout */
+.research-content {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Document List Styles */
+.doc-list {
+    background-color: var(--table-cell-bg);
+    border: 1px solid var(--table-border);
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.doc-list-header {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--table-border);
+}
+
+.doc-list-header h4 {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.doc-card {
+    background-color: var(--table-bg);
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.doc-card:hover {
+    border-color: var(--grounding-highlight);
+    background-color: var(--table-cell-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateX(2px);
+}
+
+.doc-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 8px;
+    gap: 8px;
+}
+
+.doc-type {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--grounding-highlight);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex: 1;
+}
+
+.doc-date {
+    font-size: 10px;
+    color: var(--text-color);
+    opacity: 0.7;
+    white-space: nowrap;
+}
+
+.doc-description {
+    font-size: 13px;
+    color: var(--text-color);
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.doc-issuer {
+    font-size: 11px;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-bottom: 4px;
+}
+
+.doc-issuer strong {
+    font-weight: 600;
+}
+
+.doc-esns {
+    font-size: 11px;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-bottom: 4px;
+}
+
+.doc-esns strong {
+    font-weight: 600;
+}
+
+.doc-pages {
+    font-size: 10px;
+    color: var(--text-color);
+    opacity: 0.6;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--table-border);
+}
+
+.no-docs {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-color);
+    opacity: 0.6;
+    font-style: italic;
+}
+
 /* PDF Viewer Styles */
 .pdf-viewer-container {
     background-color: var(--table-bg);

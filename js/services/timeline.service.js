@@ -7,7 +7,15 @@ export const timelineService = {
     updateFieldValue,
     undoEdit,
     addEntry,
-    getAsCSV
+    getAsCSV,
+    getDocs
+}
+
+// DOC Types
+const DOC_TYPES = {
+    ENGINE_DELIVERY_DOC: 'engineDeliveryDoc',
+    OP_ON_OFF_LOG: 'opOnOffLog',
+    PART_REMOVAL_TAG: 'partRemovalTag'
 }
 
 const cellState = {
@@ -124,6 +132,10 @@ const cfileUrlMap = {
     'cfile-101': './pdf/doc1.pdf'
 }
 
+const docUrlMap = {
+    'doc-101': './pdf/doc1.pdf'
+}
+
 function getGroundings(entryId, fieldPath) {
     const entry = demoData.find(entry => entry.id === entryId)
     if (!entry) return []
@@ -139,7 +151,7 @@ function getGroundings(entryId, fieldPath) {
     const groundingsWithUrls = field.groundings.map(grounding => {
         return {
             ...grounding,
-            url: cfileUrlMap[grounding.cFileId] || null
+            url: cfileUrlMap[grounding.cFileId] || docUrlMap[grounding.docId] || null
         }
     })
 
@@ -178,7 +190,7 @@ function getAsCSV() {
         'Part Hours (Op)',
         'Part Cycles (Op)'
     ]
-    
+
     // Build CSV rows
     const rows = demoData.map(entry => {
         return [
@@ -206,7 +218,7 @@ function getAsCSV() {
             return stringValue
         }).join(',')
     })
-    
+
     // Combine headers and rows
     return [headers.join(','), ...rows].join('\n')
 }
@@ -230,33 +242,33 @@ function updateFieldValue(entryId, fieldPath, newValue) {
     const entry = demoData.find(entry => entry.id === entryId)
     if (!entry) return false
     if (!fieldPath) return false
-    
+
     const fieldPaths = fieldPath.split('.')
     let field = entry
-    
+
     // Navigate to the parent of the target field
     for (let i = 0; i < fieldPaths.length - 1; i++) {
         field = field[fieldPaths[i]]
         if (!field) return false
     }
-    
+
     // Get the last property name
     const lastProperty = fieldPaths[fieldPaths.length - 1]
-    
+
     // Update the value property if it exists (for nested objects with value/state)
     if (field[lastProperty]) {
         const oldValue = field[lastProperty].value
-        
+
         // Only update if value actually changed
         if (oldValue === newValue) return false
-        
+
         field[lastProperty].edits.push(
             _createEdit({ from: oldValue, to: newValue })
         )
-        
+
         // Update the value
         field[lastProperty].value = newValue
-        
+
         // Reset state to draft after edit
         if (field[lastProperty].state === cellState.confirmed) {
             field[lastProperty].state = cellState.draft
@@ -265,7 +277,7 @@ function updateFieldValue(entryId, fieldPath, newValue) {
         // Direct property update
         field[lastProperty] = newValue
     }
-    
+
     return true
 }
 
@@ -273,37 +285,37 @@ function undoEdit(entryId, fieldPath, editIndex) {
     const entry = demoData.find(entry => entry.id === entryId)
     if (!entry) return false
     if (!fieldPath) return false
-    
+
     const fieldPaths = fieldPath.split('.')
     let field = entry
-    
+
     // Navigate to the target field
     for (let i = 0; i < fieldPaths.length; i++) {
         field = field[fieldPaths[i]]
         if (!field) return false
     }
-    
+
     // Check if field has edits
     if (!field.edits || field.edits.length === 0 || editIndex >= field.edits.length) {
         return false
     }
-    
+
     // Get the edit to undo
     const editToUndo = field.edits[editIndex]
-    
+
     // Restore the old value
     field.value = editToUndo.from
-    
+
     // Remove all edits from this index onwards (undoing this and later edits)
     field.edits.splice(editIndex)
-    
+
     // If no more edits and was confirmed, restore confirmed state
     // Otherwise keep as draft
     if (field.edits.length === 0 && field.state === cellState.draft) {
         // Optionally restore to confirmed if this was the only edit
         // field.state = cellState.confirmed
     }
-    
+
     return true
 }
 
@@ -312,10 +324,10 @@ function _createGrounding({ cFileId, pageNum, docId, x1, y1, x2, y2 }) {
         cFileId,
         pageNum,
         docId,
-        x1,
-        y1,
-        x2,
-        y2
+        x1: x1 || 0,
+        y1: y1 || 0,
+        x2: x2 || 0,
+        y2: y2 || 0
     }
 }
 
@@ -445,6 +457,74 @@ function _createEntry({
     }
 }
 
+
+function getDocs() {
+
+    // Hard-coded classification results
+    // 15 pages split into 5 documents of 3 pages each
+    return [
+        {
+            id: 'doc-101',
+            types: [DOC_TYPES.ENGINE_DELIVERY_DOC],
+            description: "Engine delivery documentation",
+            date: '21-Jun-2020',
+            issuer: {
+                type: 'Operator',
+                name: 'ACME Engines',
+            },
+            esns: ['ENG123456', 'ENG654321'],
+            pages: [1, 2, 3],
+        },
+        {
+            id: 'doc-102',
+            types: [DOC_TYPES.OP_ON_OFF_LOG, DOC_TYPES.ENGINE_DELIVERY_DOC],
+            description: "Operation on/off log with engine delivery details",
+            date: '21-Jun-2020',
+            issuer: {
+                type: 'Operator',
+                name: 'ACME Engines',
+            },
+            esns: [],
+            pages: [4, 5, 6],
+        },
+        {
+            id: 'doc-103',
+            types: [DOC_TYPES.PART_REMOVAL_TAG],
+            description: "Part removal tag documentation",
+            date: '16-Aug-2021',
+            issuer: {
+                type: 'Shop',
+                name: 'Best Repairs Ltd.',
+            },
+            esns: [],
+            pages: [7, 8, 9],
+        },
+        {
+            id: 'doc-104',
+            types: [DOC_TYPES.ENGINE_DELIVERY_DOC, DOC_TYPES.PART_REMOVAL_TAG],
+            description: "Engine delivery documentation with part removal tag",
+            date: '11-Feb-2022',
+            issuer: {
+                type: 'OEM',
+                name: 'Global Engines Inc.',
+            },
+            esns: ['ENG123456'],
+            pages: [10, 11, 12],
+        },
+        {
+            id: 'doc-105',
+            types: [DOC_TYPES.OP_ON_OFF_LOG],
+            description: "Operation on/off log",
+            date: '14-Mar-2023',
+            issuer: {
+                type: 'OEM',
+                name: 'Global Engines Inc.',
+            },
+            esns: ['ENG123456'],
+            pages: [13, 14, 15],
+        }
+    ]
+}
 
 
 window.demoData = demoData // For debugging purposes
