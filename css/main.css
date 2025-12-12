@@ -565,21 +565,24 @@ button {
     background-color: white;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     max-width: 100%;
-    overflow: hidden;
+    overflow: auto;
 }
 
-#pdf-canvas {
+.canvas-wrapper canvas {
     display: block;
-    max-width: 100%;
-    height: auto;
 }
 
-#bounds-canvas {
+#pdf-canvas,
+[id^="pdf-canvas-"] {
+    display: block;
+}
+
+#bounds-canvas,
+[id^="bounds-canvas-"] {
     position: absolute;
     top: 0;
     left: 0;
     pointer-events: none;
-    max-width: 100%;
 }
 
 /* Dialog styles */

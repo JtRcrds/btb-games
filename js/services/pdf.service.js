@@ -34,7 +34,7 @@ async function loadPDF(url) {
     }
 }
 
-async function renderPage(pageNumber, scale = 1.5, entryId = null) {
+async function renderPage(pageNumber, scale = 1.0, entryId = null) {
     if (!pdfDoc) {
         throw new Error('PDF not loaded')
     }

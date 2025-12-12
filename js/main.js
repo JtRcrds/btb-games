@@ -110,19 +110,13 @@ async function onToggleDetails(ev, entryId, fieldPath) {
         const groundings = timelineService.getGroundings(entryId, fieldPath)
         console.log('Groundings for', entryId, fieldPath, groundings)
 
-        if (!groundings || groundings.length === 0) {
-            alert('No groundings found for this field')
-            return
-        }
-
         // Initialize navigation state
         groundingNavigationState.entryId = entryId
         groundingNavigationState.fieldPath = fieldPath
-        groundingNavigationState.allGroundings = groundings.filter(g => g.url) // Only valid groundings
+        groundingNavigationState.allGroundings = groundings
         groundingNavigationState.currentGroundingIndex = 0
 
         if (groundingNavigationState.allGroundings.length === 0) {
-            alert('No valid PDF URL found for groundings')
             return
         }
 
@@ -458,7 +452,7 @@ async function navigateToGrounding(index) {
 
     // Clear and render page
     pdfService.clearBounds()
-    await pdfService.renderPage(pdfState.currentPageNum, 1.5, entryId)
+    await pdfService.renderPage(pdfState.currentPageNum, 1.0, entryId)
 
     // Find all groundings on the current page
     const groundingsOnThisPage = groundingNavigationState.allGroundings.filter(
@@ -530,7 +524,7 @@ function updateGroundingNavigationUI() {
 async function renderCurrentPage() {
     const entryId = groundingNavigationState.entryId
     pdfService.clearBounds()
-    await pdfService.renderPage(pdfState.currentPageNum, 1.5, entryId)
+    await pdfService.renderPage(pdfState.currentPageNum, 1.0, entryId)
 
 }
 
