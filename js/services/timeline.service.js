@@ -8,7 +8,8 @@ export const timelineService = {
     undoEdit,
     addEntry,
     getAsCSV,
-    getDocs
+    getDocs,
+    addGrounding
 }
 
 const DOC_TYPES = {
@@ -118,6 +119,46 @@ function getGroundings(entryId, fieldPath) {
     })
 
     return groundingsWithUrls
+}
+
+function addGrounding(entryId, fieldPath, docId, pageNum = 1) {
+    const entry = demoData.find(entry => entry.id === entryId)
+    if (!entry) return false
+    
+    const fieldPaths = fieldPath.split('.')
+    let field = entry
+    for (const path of fieldPaths) {
+        field = field[path]
+        if (!field) return false
+    }
+    
+    // Initialize groundings array if it doesn't exist
+    if (!field.groundings) {
+        field.groundings = []
+    }
+    
+    // Check if this document is already a grounding
+    const existingGrounding = field.groundings.find(g => g.docId === docId)
+    if (existingGrounding) {
+        console.log('Document already exists as grounding')
+        return false
+    }
+    
+    // Create a new grounding with default coordinates
+    const newGrounding = _createGrounding({
+        cFileId: `cfile-${docId}`,
+        pageNum: pageNum,
+        docId: docId,
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0
+    })
+    
+    // Add the grounding
+    field.groundings.push(newGrounding)
+    
+    return true
 }
 
 function remove(entryId) {
@@ -425,10 +466,8 @@ function getDocById(docId) {
 }
 
 function getDocs(entryId, fieldPath) {
-    const groundings = getGroundings(entryId, fieldPath)
-    const docIds = [...new Set(groundings.map(g => g.docId))] // Unique docIds
-    const relatedDocs = docs.filter(doc => docIds.includes(doc.id))
-    return relatedDocs
+    // Return all documents available
+    return docs
 }
 
 function _createDemoData() {

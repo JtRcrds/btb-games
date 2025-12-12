@@ -17,7 +17,10 @@ window.app = {
     onDownloadCSV,
     onSignOff,
     onToggleResearchPanel,
-    onSelectDoc
+    onSelectDoc,
+    onShowMoreDocs,
+    onAddAsGrounding,
+    onViewNonGroundedDoc
 }
 
 const pdfState = {
@@ -31,7 +34,9 @@ const groundingNavigationState = {
     entryId: null,
     fieldPath: null,
     allGroundings: [],
-    currentGroundingIndex: 0
+    currentGroundingIndex: 0,
+    showAllDocs: false,
+    initialDocsLimit: 3
 }
 
 
@@ -141,6 +146,7 @@ async function loadGroundingsForField(entryId, fieldPath) {
     groundingNavigationState.fieldPath = fieldPath
     groundingNavigationState.allGroundings = groundings
     groundingNavigationState.currentGroundingIndex = 0
+    groundingNavigationState.showAllDocs = false
 
     if (groundingNavigationState.allGroundings.length === 0) {
         return
@@ -182,10 +188,11 @@ async function renderDocumentList(entryId, groundings) {
     // Extract unique document IDs from groundings
     const docIdsInGroundings = [...new Set(groundings.map(g => g.docId))]
 
-    // Filter docs that appear in groundings
-    const relevantDocs = allDocs.filter(doc => docIdsInGroundings.includes(doc.id))
+    // Separate docs into grounded and non-grounded
+    const groundedDocs = allDocs.filter(doc => docIdsInGroundings.includes(doc.id))
+    const nonGroundedDocs = allDocs.filter(doc => !docIdsInGroundings.includes(doc.id))
 
-    if (relevantDocs.length === 0) {
+    if (groundedDocs.length === 0 && nonGroundedDocs.length === 0) {
         docListContainer.innerHTML = '<p class="no-docs">No documents found</p>'
         return
     }
@@ -194,14 +201,14 @@ async function renderDocumentList(entryId, groundings) {
     const currentGrounding = groundingNavigationState.allGroundings[groundingNavigationState.currentGroundingIndex]
     const currentDocId = currentGrounding?.docId
 
-    // Render document cards
-    const docCards = relevantDocs.map(doc => {
+    // Render grounded document cards
+    const groundedDocCards = groundedDocs.map(doc => {
         const primaryType = doc.types[0] || 'Unknown'
         const additionalTypes = doc.types.length > 1 ? ` +${doc.types.length - 1} more` : ''
         const isSelected = doc.id === currentDocId ? 'selected' : ''
         
         return `
-            <div class="doc-card ${isSelected}" data-doc-id="${doc.id}" onclick="app.onSelectDoc('${doc.id}', '${entryId}')">
+            <div class="doc-card ${isSelected} has-grounding" data-doc-id="${doc.id}" onclick="app.onSelectDoc('${doc.id}', '${entryId}')">
                 <div class="doc-card-header">
                     <div class="doc-type">${primaryType}${additionalTypes}</div>
                     <div class="doc-date">${doc.date}</div>
@@ -215,7 +222,41 @@ async function renderDocumentList(entryId, groundings) {
         `
     }).join('')
 
-    docListContainer.innerHTML = `<div class="doc-list-header"><h4>Grounding Documents</h4></div>${docCards}`
+    // Render non-grounded document cards (only if showing all)
+    const nonGroundedDocCards = groundingNavigationState.showAllDocs ? nonGroundedDocs.map(doc => {
+        const primaryType = doc.types[0] || 'Unknown'
+        const additionalTypes = doc.types.length > 1 ? ` +${doc.types.length - 1} more` : ''
+        
+        return `
+            <div class="doc-card non-grounded" data-doc-id="${doc.id}">
+                <div class="doc-card-header">
+                    <div class="doc-type">${primaryType}${additionalTypes}</div>
+                    <div class="doc-date">${doc.date}</div>
+                </div>
+                <div class="doc-description">${doc.description}</div>
+                <div class="doc-issuer">
+                    <strong>${doc.issuer.type}:</strong> ${doc.issuer.name}
+                </div>
+                ${doc.esns.length > 0 ? `<div class="doc-esns"><strong>ESNs:</strong> ${doc.esns.join(', ')}</div>` : ''}
+                <div class="doc-actions">
+                    <button class="view-doc-btn" onclick="app.onViewNonGroundedDoc(event, '${doc.id}', '${entryId}')" title="View Document">
+                        <i data-lucide="eye"></i>
+                    </button>
+                    <button class="add-grounding-btn" onclick="app.onAddAsGrounding(event, '${doc.id}', '${entryId}')">
+                        <i data-lucide="plus"></i> Add as Grounding
+                    </button>
+                </div>
+            </div>
+        `
+    }).join('') : ''
+
+    const toggleButton = nonGroundedDocs.length > 0
+        ? `<button class="show-more-docs-btn" onclick="app.onShowMoreDocs('${entryId}')">
+               ${groundingNavigationState.showAllDocs ? 'Show Less' : `Show More (${nonGroundedDocs.length} more)`}
+           </button>`
+        : ''
+
+    docListContainer.innerHTML = `<div class="doc-list-header"><h4>Grounding Documents</h4></div>${groundedDocCards}${toggleButton}${nonGroundedDocCards}`
 }
 
 async function onSelectDoc(docId, entryId) {
@@ -240,6 +281,52 @@ async function onSelectDoc(docId, entryId) {
         
         // Refresh document list to update selected state
         await renderDocumentList(entryId, groundingNavigationState.allGroundings)
+    }
+}
+
+async function onShowMoreDocs(entryId) {
+    groundingNavigationState.showAllDocs = !groundingNavigationState.showAllDocs
+    await renderDocumentList(entryId, groundingNavigationState.allGroundings)
+    // Re-initialize lucide icons for the newly rendered content
+    setTimeout(() => lucide.createIcons(), 0)
+}
+
+async function onViewNonGroundedDoc(event, docId, entryId) {
+    event.stopPropagation()
+    
+    // Get the document to view
+    const fieldPath = groundingNavigationState.fieldPath
+    const allDocs = await timelineService.getDocs(entryId, fieldPath)
+    const selectedDoc = allDocs.find(doc => doc.id === docId)
+    
+    if (!selectedDoc) return
+
+    // Load the PDF in the viewer (page 1 by default)
+    await pdfService.loadPDF(selectedDoc.url, selectedDoc.description)
+    pdfState.currentPdfUrl = selectedDoc.url
+    pdfState.currentDocName = selectedDoc.description
+    pdfState.currentPageNum = 1
+    
+    // Update the page info UI
+    renderPageInfo()
+}
+
+async function onAddAsGrounding(event, docId, entryId) {
+    event.stopPropagation()
+    
+    const fieldPath = groundingNavigationState.fieldPath
+    
+    // Add the document as a grounding
+    const success = timelineService.addGrounding(entryId, fieldPath, docId, 1)
+    
+    if (success) {
+        // Reload groundings for the field
+        await loadGroundingsForField(entryId, fieldPath)
+        
+        // Show success message
+        console.log('Successfully added document as grounding:', { docId, entryId, fieldPath })
+    } else {
+        alert('Failed to add document as grounding. It may already exist.')
     }
 }
 
@@ -403,7 +490,12 @@ async function renderEntries() {
             <td colspan="10" class="research-cell">
                 <div id="research-panel-${entry.id}" class="research-panel">
                     <div class="research-header">
-                        <h3>Research Panel</h3>
+                        <div class="research-header-left">
+                            <h3>Research Panel</h3>
+                            <div class="field-path-display" id="field-path-${entry.id}" style="display: none;">
+                                <strong>Field:</strong> <span id="grounding-field-${entry.id}"></span>
+                            </div>
+                        </div>
                         <button class="close-research-btn" onclick="app.onToggleResearchPanel('${entry.id}')">×</button>
                     </div>
                     <div class="research-content">
@@ -411,9 +503,6 @@ async function renderEntries() {
                         </div>
                         <div class="pdf-viewer-container" id="pdf-container-${entry.id}">
                             <div class="grounding-navigation" id="grounding-nav-${entry.id}" style="display: none;">
-                                <div class="grounding-info">
-                                    <strong>Field:</strong> <span id="grounding-field-${entry.id}"></span>
-                                </div>
                                 <div class="grounding-controls">
                                     <button id="prev-grounding-btn-${entry.id}" onclick="app.onPrevGrounding()">◄ Previous Grounding</button>
                                     <span id="grounding-info-${entry.id}">Grounding: <span id="grounding-num-${entry.id}">1</span> / <span id="grounding-count-${entry.id}">-</span></span>
@@ -553,10 +642,16 @@ function updateGroundingNavigationUI() {
     const groundingNumEl = document.getElementById(`grounding-num-${entryId}`)
     const groundingCountEl = document.getElementById(`grounding-count-${entryId}`)
     const groundingFieldEl = document.getElementById(`grounding-field-${entryId}`)
+    const fieldPathDisplay = document.getElementById(`field-path-${entryId}`)
 
     if (groundingNumEl) groundingNumEl.textContent = currentIdx + 1
     if (groundingCountEl) groundingCountEl.textContent = total
     if (groundingFieldEl) groundingFieldEl.textContent = groundingNavigationState.fieldPath || ''
+    
+    // Show/hide field path display in header
+    if (fieldPathDisplay) {
+        fieldPathDisplay.style.display = groundingNavigationState.fieldPath ? 'flex' : 'none'
+    }
 
     // Enable/disable navigation buttons
     const prevBtn = document.getElementById(`prev-grounding-btn-${entryId}`)
@@ -565,7 +660,7 @@ function updateGroundingNavigationUI() {
     if (prevBtn) prevBtn.disabled = currentIdx === 0
     if (nextBtn) nextBtn.disabled = currentIdx === total - 1
 
-    // Show/hide grounding navigation - only show if more than 1 grounding
+    // Show/hide grounding navigation - show if more than 1 grounding
     const groundingNav = document.getElementById(`grounding-nav-${entryId}`)
     if (groundingNav) {
         groundingNav.style.display = total > 1 ? 'flex' : 'none'

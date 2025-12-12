@@ -314,10 +314,32 @@ button {
     border-bottom: 2px solid var(--table-border);
 }
 
+.research-header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .research-header h3 {
     margin: 0;
     color: var(--text-color);
     font-size: 18px;
+}
+
+.field-path-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--text-color);
+    padding: 4px 12px;
+    background-color: var(--table-cell-bg);
+    border-radius: 4px;
+    border: 1px solid var(--table-border);
+}
+
+.field-path-display strong {
+    color: var(--grounding-highlight);
 }
 
 .close-research-btn {
@@ -391,6 +413,102 @@ button {
     box-shadow: 0 3px 8px rgba(255, 107, 53, 0.3);
 }
 
+.doc-card.has-grounding {
+    border-left: 3px solid var(--grounding-highlight);
+}
+
+.doc-card.non-grounded {
+    opacity: 0.75;
+    background-color: var(--table-bg);
+}
+
+.doc-card.non-grounded:hover {
+    opacity: 1;
+}
+
+.grounding-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--grounding-highlight);
+    font-weight: 600;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--table-border);
+}
+
+.grounding-badge i {
+    width: 12px;
+    height: 12px;
+}
+
+.doc-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.view-doc-btn {
+    padding: 6px 10px;
+    background-color: var(--table-cell-bg);
+    color: var(--text-color);
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.view-doc-btn:hover {
+    background-color: var(--table-bg);
+    border-color: var(--grounding-highlight);
+    color: var(--grounding-highlight);
+}
+
+.view-doc-btn i {
+    width: 14px;
+    height: 14px;
+}
+
+.add-grounding-btn {
+    flex: 1;
+    padding: 6px 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.add-grounding-btn:hover {
+    background-color: var(--grounding-highlight);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.add-grounding-btn:active {
+    transform: translateY(0);
+}
+
+.add-grounding-btn i {
+    width: 14px;
+    height: 14px;
+}
+
 .doc-card-header {
     display: flex;
     justify-content: space-between;
@@ -453,6 +571,30 @@ button {
     border-top: 1px solid var(--table-border);
 }
 
+.show-more-docs-btn {
+    width: 100%;
+    padding: 8px 12px;
+    margin-top: 8px;
+    background-color: var(--table-bg);
+    border: 1px solid var(--table-border);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.show-more-docs-btn:hover {
+    background-color: var(--table-cell-bg);
+    border-color: var(--grounding-highlight);
+    color: var(--grounding-highlight);
+}
+
+.show-more-docs-btn:active {
+    transform: translateY(1px);
+}
+
 .no-docs {
     text-align: center;
     padding: 20px;
@@ -467,26 +609,19 @@ button {
 }
 
 .grounding-navigation {
-    background-color: var(--table-header-bg);
-    padding: 15px;
+    background-color: #e8e8e8;
+    padding: 12px;
     border-radius: 6px;
     margin-bottom: 15px;
-    border: 2px solid var(--table-header-border);
+    border: 1px solid #ccc;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.grounding-info {
-    color: var(--table-header-text);
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.grounding-info strong {
-    color: var(--grounding-highlight);
+.dark-theme .grounding-navigation {
+    background-color: #3a3a3a;
+    border-color: #555;
 }
 
 .grounding-controls {
@@ -498,7 +633,7 @@ button {
 }
 
 .grounding-controls > span {
-    color: white;
+    color: var(--text-color);
     font-weight: 500;
 }
 
