@@ -44,6 +44,7 @@ const groundingNavigationState = {
     initialDocsLimit: 3
 }
 
+let validationErrors = {}
 
 async function onInit() {
     setTimeout(() => {
@@ -398,25 +399,25 @@ async function onAddAsGrounding(event, docId, entryId) {
     }
 }
 
-function isFieldValid(fieldValue) {
-    if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
-        return false
-    }
-    return true
+function hasValidationError(entryId, fieldPath) {
+    return validationErrors[entryId]?.[fieldPath]?.length > 0
 }
 
 function getCellButtons(entry, fieldPath, fieldValue) {
     const field = fieldPath.split('.').reduce((obj, key) => obj?.[key], entry)
     const isConfirmed = field?.state === 'confirmed'
     const hasEdits = field?.edits && field.edits.length > 0
-    const isValid = isFieldValid(fieldValue)
+    const hasErrors = hasValidationError(entry.id, fieldPath)
     
     const popoverId = `edit-popover-${entry.id}-${fieldPath.replace(/\./g, '-')}`
     const anchorId = `anchor-${entry.id}-${fieldPath.replace(/\./g, '-')}`
+    const validationPopoverId = `validation-popover-${entry.id}-${fieldPath.replace(/\./g, '-')}`
+    const validationAnchorId = `validation-anchor-${entry.id}-${fieldPath.replace(/\./g, '-')}`
     
     return `
+        ${hasErrors ? `<button id="${validationAnchorId}" class="validation-indicator" popovertarget="${validationPopoverId}" type="button"><i data-lucide="shield-alert"></i></button>` : ''}
         ${hasEdits ? `<button id="${anchorId}" class="edit-indicator" popovertarget="${popoverId}" type="button"><i data-lucide="file-edit"></i></button>` : ''}
-        <button title="${isConfirmed ? 'Unconfirm' : isValid ? 'Confirm' : 'Cannot confirm - field is empty'}" ${!isValid && !isConfirmed ? 'disabled' : ''} onclick="app.onConfirmCell(event, '${entry.id}', '${fieldPath}')">
+        <button title="${isConfirmed ? 'Unconfirm' : hasErrors ? 'Cannot confirm - has validation errors' : 'Confirm'}" ${hasErrors && !isConfirmed ? 'disabled' : ''} onclick="app.onConfirmCell(event, '${entry.id}', '${fieldPath}')">
             <i data-lucide="${isConfirmed ? 'book-open-check' : 'book-check'}"></i>
         </button>
         <button title="Show/Hide Details" onclick="app.onToggleDetails(event, '${entry.id}', '${fieldPath}')">
@@ -449,6 +450,27 @@ function createEditPopover(entry, fieldPath) {
     return `<div id="${popoverId}" popover anchor="${anchorId}" class="edit-history-popover"><div class="edit-history-header">Edit History:</div>${editHistoryItems}</div>`
 }
 
+function createValidationPopover(entry, fieldPath) {
+    const errors = validationErrors[entry.id]?.[fieldPath]
+    if (!errors || errors.length === 0) return ''
+    
+    const popoverId = `validation-popover-${entry.id}-${fieldPath.replace(/\./g, '-')}`
+    const anchorId = `validation-anchor-${entry.id}-${fieldPath.replace(/\./g, '-')}`
+    
+    const errorItems = errors.map((error, index) => {
+        const severityClass = error.severity === 1 ? 'severity-error' : 'severity-warning'
+        return `<div class="validation-error-item ${severityClass}">
+            <div class="validation-error-code">[${error.code}]</div>
+            <div class="validation-error-text">
+                <strong>${error.error}</strong>
+                <p>${error.description}</p>
+            </div>
+        </div>`
+    }).join('')
+    
+    return `<div id="${popoverId}" popover anchor="${anchorId}" class="validation-popover"><div class="validation-header">Validation Errors:</div>${errorItems}</div>`
+}
+
 function getRelativeTime(date) {
     const now = new Date()
     const diffMs = now - date
@@ -476,8 +498,11 @@ function getRelativeTime(date) {
 async function renderEntries() {
     const entries = await timelineService.query()
     
+    // Run validation
+    validationErrors = timelineService.validateData()
+    
     // Remove old popovers
-    document.querySelectorAll('.edit-history-popover').forEach(el => el.remove())
+    document.querySelectorAll('.edit-history-popover, .validation-popover').forEach(el => el.remove())
     
     // Collect all popovers
     const allPopovers = []
@@ -489,43 +514,46 @@ async function renderEntries() {
     
     entries.forEach(entry => {
         fieldPaths.forEach(fieldPath => {
-            const popover = createEditPopover(entry, fieldPath)
-            if (popover) allPopovers.push(popover)
+            const editPopover = createEditPopover(entry, fieldPath)
+            if (editPopover) allPopovers.push(editPopover)
+            
+            const validationPopover = createValidationPopover(entry, fieldPath)
+            if (validationPopover) allPopovers.push(validationPopover)
         })
     })
     
     const strHTMLs = entries.map(entry => {
         return `
         <tr>
-            <td rowspan="2" tabindex="0" class="data-cell ${entry.op.state} ${!isFieldValid(entry.op.value) ? 'invalid' : ''}" data-entry-id="${entry.id}" data-field-path="op">
+            <td rowspan="2" tabindex="0" class="data-cell ${entry.op.state} ${hasValidationError(entry.id, 'op') ? 'invalid' : ''}" data-entry-id="${entry.id}" data-field-path="op">
                 ${entry.op.value}
                 ${getCellButtons(entry, 'op', entry.op.value)}
             </td>
             <td>
                 ON
             </td>
-            <td class="data-cell ${entry.dateRange.start.state} ${!isFieldValid(entry.dateRange.start.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start">
+            <td class="data-cell ${entry.dateRange.start.state} ${hasValidationError(entry.id, 'dateRange.start') ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start">
                 ${entry.dateRange.start.value}
                 ${getCellButtons(entry, 'dateRange.start', entry.dateRange.start.value)}
             </td>
-            <td class="data-cell ${entry.engine.esn.state} ${!isFieldValid(entry.engine.esn.value) ? 'invalid' : ''}" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn">
+            <td class="data-cell ${entry.engine.esn.state} ${hasValidationError(entry.id, 'engine.esn') ? 'invalid' : ''}" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn">
                 ${entry.engine.esn.value}
                 ${getCellButtons(entry, 'engine.esn', entry.engine.esn.value)}
             </td>
-            <td class="data-cell ${entry.engine.totalCycleRange.start.state} ${!isFieldValid(entry.engine.totalCycleRange.start.value) ? 'invalid' : ''}" tabindex="0">
+            <td class="data-cell ${entry.engine.totalCycleRange.start.state} ${hasValidationError(entry.id, 'engine.totalCycleRange.start') ? 'invalid' : ''}" tabindex="0">
                 ${entry.engine.totalCycleRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalCycleRange.start', entry.engine.totalCycleRange.start.value)}
         
             </td>
-            <td class="data-cell ${entry.engine.totalHourRange.start.state} ${!isFieldValid(entry.engine.totalHourRange.start.value) ? 'invalid' : ''}" tabindex="0">
+            <td class="data-cell ${entry.engine.totalHourRange.start.state} ${hasValidationError(entry.id, 'engine.totalHourRange.start') ? 'invalid' : ''}" tabindex="0">
                 ${entry.engine.totalHourRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalHourRange.start', entry.engine.totalHourRange.start.value)}
             </td>
-            <td class="data-cell ${entry.part.totalHourRange.start.state} ${!isFieldValid(entry.part.totalHourRange.start.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.start">
+            <td class="data-cell ${entry.part.totalHourRange.start.state} ${hasValidationError(entry.id, 'part.totalHourRange.start') ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.start">
                 ${entry.part.totalHourRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalHourRange.start', entry.part.totalHourRange.start.value)}
             </td>
-            <td class="data-cell ${entry.part.totalCycleRange.start.state} ${!isFieldValid(entry.part.totalCycleRange.start.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.start">
+            <td class="data-cell ${entry.part.totalCycleRange.start.state} ${hasValidationError(entry.id, 'part.totalCycleRange.start') ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.start">
                 ${entry.part.totalCycleRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalCycleRange.start', entry.part.totalCycleRange.start.value)}
             </td>
@@ -540,23 +568,23 @@ async function renderEntries() {
             <td>
                 OFF
             </td>
-            <td class="data-cell ${entry.dateRange.end.state} ${!isFieldValid(entry.dateRange.end.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end">
+            <td class="data-cell ${entry.dateRange.end.state} ${hasValidationError(entry.id, 'dateRange.end') ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end">
                ${entry.dateRange.end.value}
                ${getCellButtons(entry, 'dateRange.end', entry.dateRange.end.value)}
             </td>
-            <td class="data-cell ${entry.engine.totalCycleRange.end.state} ${!isFieldValid(entry.engine.totalCycleRange.end.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end">
+            <td class="data-cell ${entry.engine.totalCycleRange.end.state} ${hasValidationError(entry.id, 'engine.totalCycleRange.end') ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end">
                 ${entry.engine.totalCycleRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalCycleRange.end', entry.engine.totalCycleRange.end.value)}
             </td>            
-            <td class="data-cell ${entry.engine.totalHourRange.end.state} ${!isFieldValid(entry.engine.totalHourRange.end.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end">
+            <td class="data-cell ${entry.engine.totalHourRange.end.state} ${hasValidationError(entry.id, 'engine.totalHourRange.end') ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end">
                 ${entry.engine.totalHourRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalHourRange.end', entry.engine.totalHourRange.end.value)}
             </td>
-            <td class="data-cell ${entry.part.totalHourRange.end.state} ${!isFieldValid(entry.part.totalHourRange.end.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.end">
+            <td class="data-cell ${entry.part.totalHourRange.end.state} ${hasValidationError(entry.id, 'part.totalHourRange.end') ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.end">
                 ${entry.part.totalHourRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalHourRange.end', entry.part.totalHourRange.end.value)}
             </td>
-            <td class="data-cell ${entry.part.totalCycleRange.end.state} ${!isFieldValid(entry.part.totalCycleRange.end.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.end">
+            <td class="data-cell ${entry.part.totalCycleRange.end.state} ${hasValidationError(entry.id, 'part.totalCycleRange.end') ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.end">
                 ${entry.part.totalCycleRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalCycleRange.end', entry.part.totalCycleRange.end.value)}
             </td>
@@ -910,9 +938,11 @@ async function onConfirmCell(ev, entryId, fieldPath) {
         return
     }
     
-    // Don't allow confirming invalid (empty) fields
-    if (!isFieldValid(field.value) && field.state !== 'confirmed') {
-        alert('Cannot confirm empty field. Please enter a value first.')
+    // Check for validation errors
+    const errors = validationErrors[entryId]?.[fieldPath]
+    if (errors && errors.length > 0 && field.state !== 'confirmed') {
+        const errorMessages = errors.map(e => `[${e.code}] ${e.error}`).join('\n')
+        alert(`Cannot confirm field with validation errors:\n\n${errorMessages}`)
         return
     }
     
