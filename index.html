@@ -11,7 +11,16 @@
 </head>
 
 <body onload="app.onInit()">
-    <button class="theme-toggle" onclick="app.onToggleTheme()">Toggle Theme</button>
+    <button hidden class="theme-toggle" onclick="app.onToggleTheme()">Toggle Theme</button>
+
+    <div class="table-actions">
+        <button class="btn-sign" disabled onclick="app.onSignOff()">
+            <i data-lucide="signature"></i> Sign off
+        </button>
+        <button class="btn-download-csv" onclick="app.onDownloadCSV()">
+            <i data-lucide="download"></i> Download CSV
+        </button>
+    </div>
 
     <section class="table-container">
 
@@ -36,14 +45,6 @@
             </thead>
             <tbody></tbody>
         </table>
-        <div class="table-actions">
-            <button class="btn-sign" disabled onclick="app.onSignOff()">
-                <i data-lucide="signature"></i> Sign off
-            </button>
-            <button class="btn-download-csv" onclick="app.onDownloadCSV()">
-                <i data-lucide="download"></i> Download CSV
-            </button>
-        </div>
     </section>
 
     <script type="module" src="js/main.js"></script>

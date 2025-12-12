@@ -22,6 +22,11 @@ window.app = {
     onAddAsGrounding,
     onViewNonGroundedDoc
 }
+// setInterval(() => {
+//     lucide.createIcons()
+// }, 500)
+
+
 
 const pdfState = {
     currentPageNum: 1,
@@ -130,6 +135,7 @@ async function onToggleDetails(ev, entryId, fieldPath) {
 
     // Load groundings for the selected field
     await loadGroundingsForField(entryId, fieldPath)
+    lucide.createIcons()
 }
 
 async function loadGroundingsForField(entryId, fieldPath) {
@@ -145,9 +151,40 @@ async function loadGroundingsForField(entryId, fieldPath) {
     groundingNavigationState.fieldPath = fieldPath
     groundingNavigationState.allGroundings = groundings
     groundingNavigationState.currentGroundingIndex = 0
-    groundingNavigationState.showAllDocs = false
+    
+    // If no groundings, automatically show all docs
+    groundingNavigationState.showAllDocs = groundings.length === 0
 
     if (groundingNavigationState.allGroundings.length === 0) {
+        // Show message about no groundings and render all available docs
+        await renderDocumentList(entryId, groundings)
+        
+        // Hide grounding navigation since there are no groundings
+        const groundingNav = document.getElementById(`grounding-nav-${entryId}`)
+        if (groundingNav) {
+            groundingNav.style.display = 'none'
+        }
+        
+        // Clear PDF viewer and show placeholder message
+        const pdfContainer = document.getElementById(`pdf-container-${entryId}`)
+        const docNameEl = pdfContainer?.querySelector('#doc-name')
+        if (docNameEl) {
+            docNameEl.textContent = 'Select a document to view'
+        }
+        
+        // Clear canvas
+        const canvasSuffix = `-${entryId}`
+        const pdfCanvas = document.getElementById(`pdf-canvas${canvasSuffix}`)
+        const boundsCanvas = document.getElementById(`bounds-canvas${canvasSuffix}`)
+        if (pdfCanvas) {
+            const ctx = pdfCanvas.getContext('2d')
+            ctx.clearRect(0, 0, pdfCanvas.width, pdfCanvas.height)
+        }
+        if (boundsCanvas) {
+            const ctx = boundsCanvas.getContext('2d')
+            ctx.clearRect(0, 0, boundsCanvas.width, boundsCanvas.height)
+        }
+        
         return
     }
 
@@ -207,7 +244,7 @@ async function renderDocumentList(entryId, groundings) {
         const isSelected = doc.id === currentDocId ? 'selected' : ''
         
         return `
-            <div class="doc-card ${isSelected} has-grounding" data-doc-id="${doc.id}" onclick="app.onSelectDoc('${doc.id}', '${entryId}')">
+            <div class="doc-card ${isSelected}" data-doc-id="${doc.id}" onclick="app.onSelectDoc('${doc.id}', '${entryId}')">
                 <div class="doc-card-header">
                     <div class="doc-type">${primaryType}${additionalTypes}</div>
                     <div class="doc-date">${doc.date}</div>
@@ -239,7 +276,7 @@ async function renderDocumentList(entryId, groundings) {
                 ${doc.esns.length > 0 ? `<div class="doc-esns"><strong>ESNs:</strong> ${doc.esns.join(', ')}</div>` : ''}
                 <div class="doc-actions">
                     <button class="view-doc-btn" onclick="app.onViewNonGroundedDoc(event, '${doc.id}', '${entryId}')" title="View Document">
-                        <i data-lucide="eye"></i>
+                        <i data-lucide="square-chart-gantt"></i>
                     </button>
                     <button class="add-grounding-btn" onclick="app.onAddAsGrounding(event, '${doc.id}', '${entryId}')">
                         <i data-lucide="plus"></i> Add as Grounding
@@ -249,13 +286,25 @@ async function renderDocumentList(entryId, groundings) {
         `
     }).join('') : ''
 
-    const toggleButton = nonGroundedDocs.length > 0
-        ? `<button class="show-more-docs-btn" onclick="app.onShowMoreDocs('${entryId}')">
-               ${groundingNavigationState.showAllDocs ? 'Show Less' : `Show More (${nonGroundedDocs.length} more)`}
-           </button>`
-        : ''
+    // Special header for when there are no groundings
+    let headerText, toggleButton
+    
+    if (groundedDocs.length === 0) {
+        headerText = `<div class="doc-list-header no-groundings">
+            <h4>No groundings yet</h4>
+            <p>Add a grounding by selecting a document below</p>
+        </div>`
+        toggleButton = '' // Show all docs by default when no groundings
+    } else {
+        headerText = `<div class="doc-list-header"><h4>Grounding Documents (${groundedDocs.length} ${groundedDocs.length === 1 ? 'grounding' : 'groundings'})</h4></div>`
+        toggleButton = nonGroundedDocs.length > 0
+            ? `<button class="show-more-docs-btn" onclick="app.onShowMoreDocs('${entryId}')">
+                   ${groundingNavigationState.showAllDocs ? 'Show Less' : `Show More (${nonGroundedDocs.length} more)`}
+               </button>`
+            : ''
+    }
 
-    docListContainer.innerHTML = `<div class="doc-list-header"><h4>Grounding Documents</h4></div>${groundedDocCards}${toggleButton}${nonGroundedDocCards}`
+    docListContainer.innerHTML = `${headerText}${groundedDocCards}${toggleButton}${nonGroundedDocCards}`
 }
 
 async function onSelectDoc(docId, entryId) {
@@ -300,14 +349,34 @@ async function onViewNonGroundedDoc(event, docId, entryId) {
     
     if (!selectedDoc) return
 
-    // Load the PDF in the viewer (page 1 by default)
-    await pdfService.loadPDF(selectedDoc.url, selectedDoc.description)
+    // Load and render the PDF in the viewer
+    const loadResult = await pdfService.loadPDF(selectedDoc.url)
+    if (!loadResult.success) {
+        console.error('Failed to load PDF:', loadResult.error)
+        return
+    }
+    
     pdfState.currentPdfUrl = selectedDoc.url
     pdfState.currentDocName = selectedDoc.description
+    // Use pagesCount from doc metadata if available, otherwise use loadResult
+    pdfState.totalPages = selectedDoc.pagesCount || loadResult.numPages
     pdfState.currentPageNum = 1
     
-    // Update the page info UI
-    renderPageInfo()
+    // Render the first page
+    await pdfService.renderPage(1, 1.0, entryId)
+    
+    // Update document name in UI
+    const pdfContainer = document.getElementById(`pdf-container-${entryId}`)
+    const docNameEl = pdfContainer?.querySelector('#doc-name')
+    if (docNameEl) {
+        docNameEl.textContent = selectedDoc.description
+    }
+    
+    // Update page info within the specific entry's container
+    const pageNumEl = pdfContainer?.querySelector('#page-num')
+    const pageCountEl = pdfContainer?.querySelector('#page-count')
+    if (pageNumEl) pageNumEl.textContent = pdfState.currentPageNum
+    if (pageCountEl) pageCountEl.textContent = pdfState.totalPages
 }
 
 async function onAddAsGrounding(event, docId, entryId) {
@@ -667,10 +736,10 @@ function updateGroundingNavigationUI() {
     if (prevBtn) prevBtn.disabled = currentIdx === 0
     if (nextBtn) nextBtn.disabled = currentIdx === total - 1
 
-    // Show/hide grounding navigation - show if more than 1 grounding
+    // Show/hide grounding navigation - show if there's at least 1 grounding
     const groundingNav = document.getElementById(`grounding-nav-${entryId}`)
     if (groundingNav) {
-        groundingNav.style.display = total > 1 ? 'flex' : 'none'
+        groundingNav.style.display = total > 0 ? 'flex' : 'none'
     }
 }
 

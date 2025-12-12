@@ -35,6 +35,7 @@ const docs = [
         },
         esns: ['ENG123456', 'ENG654321'],
         url: './pdf/doc1.pdf',
+        pagesCount: 3
     },
     {
         id: 'doc2',
@@ -47,6 +48,7 @@ const docs = [
         },
         esns: [],
         url: './pdf/doc2.pdf',
+        pagesCount: 3
     },
     {
         id: 'doc3',
@@ -59,6 +61,7 @@ const docs = [
         },
         esns: [],
         url: './pdf/doc3.pdf',
+        pagesCount: 3
     },
     {
         id: 'doc4',
@@ -71,6 +74,7 @@ const docs = [
         },
         esns: ['ENG123456'],
         url: './pdf/doc4.pdf',
+        pagesCount: 3
     },
     {
         id: 'doc5',
@@ -83,6 +87,7 @@ const docs = [
         },
         esns: ['ENG123456'],
         url: './pdf/doc5.pdf',
+        pagesCount: 3
     }
 ]
 
