@@ -117,7 +117,7 @@ button {
     color: var(--table-cell-text-highlite);
 }
 
-.timeline-table .cell-with-groundings:focus {
+.timeline-table .cell-with-groundings.selected {
     outline: 2px solid var(--grounding-highlight);
     outline-offset: -2px;
     background-color: var(--grounding-highlight-bg);
@@ -515,14 +515,6 @@ button {
     transform: none;
 }
 
-#grounding-info {
-    color: var(--table-header-text);
-    font-size: 14px;
-    font-weight: 600;
-    background-color: var(--grounding-highlight-bg);
-    padding: 6px 12px;
-    border-radius: 4px;
-}
 
 .pdf-controls {
     display: flex;

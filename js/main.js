@@ -68,6 +68,11 @@ function onToggleResearchPanel(entryId) {
     setTimeout(() => {
         researchRow.classList.remove('visible')
     }, 300)
+    
+    // Clear selected cell styling
+    document.querySelectorAll('.cell-with-groundings.selected').forEach(cell => {
+        cell.classList.remove('selected')
+    })
 }
 
 async function onToggleDetails(ev, entryId, fieldPath) {
@@ -127,6 +132,9 @@ async function loadGroundingsForField(entryId, fieldPath) {
     const groundings = timelineService.getGroundings(entryId, fieldPath)
     console.log('Groundings for', entryId, fieldPath, groundings)
 
+    // Update selected cell styling
+    updateSelectedCell(entryId, fieldPath)
+
     // Initialize navigation state
     groundingNavigationState.entryId = entryId
     groundingNavigationState.fieldPath = fieldPath
@@ -145,6 +153,21 @@ async function loadGroundingsForField(entryId, fieldPath) {
 
     // Render document list
     await renderDocumentList(entryId, groundings)
+}
+
+function updateSelectedCell(entryId, fieldPath) {
+    // Remove 'selected' class from all cells
+    document.querySelectorAll('.cell-with-groundings.selected').forEach(cell => {
+        cell.classList.remove('selected')
+    })
+    
+    // Add 'selected' class to the current cell
+    const currentCell = document.querySelector(
+        `.cell-with-groundings[data-entry-id="${entryId}"][data-field-path="${fieldPath}"]`
+    )
+    if (currentCell) {
+        currentCell.classList.add('selected')
+    }
 }
 
 async function renderDocumentList(entryId, groundings) {
