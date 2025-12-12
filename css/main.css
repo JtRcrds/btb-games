@@ -148,6 +148,16 @@ button {
     );
 }
 
+.timeline-table td.invalid {
+    outline: 2px solid rgba(255, 100, 100, 0.6);
+    outline-offset: -2px;
+}
+
+:root.dark-theme .timeline-table td.invalid {
+    outline: 2px solid rgba(255, 100, 100, 0.7);
+    outline-offset: -2px;
+}
+
 .timeline-table td:not(.actions-cell):not(.add-entry-cell):not(.research-cell) button {
     border: 0;
     background-color: transparent;

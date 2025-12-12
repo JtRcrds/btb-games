@@ -51,7 +51,6 @@ async function onInit() {
     }
     await renderEntries()
     setupTableKeyboardNavigation()
-    setupAddEntryForm()
     initDraggableModal()
 }
 
@@ -330,17 +329,25 @@ async function onAddAsGrounding(event, docId, entryId) {
     }
 }
 
+function isFieldValid(fieldValue) {
+    if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
+        return false
+    }
+    return true
+}
+
 function getCellButtons(entry, fieldPath, fieldValue) {
     const field = fieldPath.split('.').reduce((obj, key) => obj?.[key], entry)
     const isConfirmed = field?.state === 'confirmed'
     const hasEdits = field?.edits && field.edits.length > 0
+    const isValid = isFieldValid(fieldValue)
     
     const popoverId = `edit-popover-${entry.id}-${fieldPath.replace(/\./g, '-')}`
     const anchorId = `anchor-${entry.id}-${fieldPath.replace(/\./g, '-')}`
     
     return `
         ${hasEdits ? `<button id="${anchorId}" class="edit-indicator" popovertarget="${popoverId}" type="button"><i data-lucide="file-edit"></i></button>` : ''}
-        <button title="${isConfirmed ? 'Unconfirm' : 'Confirm'}" onclick="app.onConfirmCell(event, '${entry.id}', '${fieldPath}')">
+        <button title="${isConfirmed ? 'Unconfirm' : isValid ? 'Confirm' : 'Cannot confirm - field is empty'}" ${!isValid && !isConfirmed ? 'disabled' : ''} onclick="app.onConfirmCell(event, '${entry.id}', '${fieldPath}')">
             <i data-lucide="${isConfirmed ? 'book-open-check' : 'book-check'}"></i>
         </button>
         <button title="Show/Hide Details" onclick="app.onToggleDetails(event, '${entry.id}', '${fieldPath}')">
@@ -421,35 +428,35 @@ async function renderEntries() {
     const strHTMLs = entries.map(entry => {
         return `
         <tr>
-            <td rowspan="2" tabindex="0" class="data-cell ${entry.op.state}" data-entry-id="${entry.id}" data-field-path="op">
+            <td rowspan="2" tabindex="0" class="data-cell ${entry.op.state} ${!isFieldValid(entry.op.value) ? 'invalid' : ''}" data-entry-id="${entry.id}" data-field-path="op">
                 ${entry.op.value}
                 ${getCellButtons(entry, 'op', entry.op.value)}
             </td>
             <td>
                 ON
             </td>
-            <td class="data-cell ${entry.dateRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start">
+            <td class="data-cell ${entry.dateRange.start.state} ${!isFieldValid(entry.dateRange.start.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.start">
                 ${entry.dateRange.start.value}
                 ${getCellButtons(entry, 'dateRange.start', entry.dateRange.start.value)}
             </td>
-            <td class="data-cell ${entry.engine.esn.state}" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn">
+            <td class="data-cell ${entry.engine.esn.state} ${!isFieldValid(entry.engine.esn.value) ? 'invalid' : ''}" tabindex="0" rowspan="2" data-entry-id="${entry.id}" data-field-path="engine.esn">
                 ${entry.engine.esn.value}
                 ${getCellButtons(entry, 'engine.esn', entry.engine.esn.value)}
             </td>
-            <td class="data-cell ${entry.engine.totalCycleRange.start.state}" tabindex="0">
+            <td class="data-cell ${entry.engine.totalCycleRange.start.state} ${!isFieldValid(entry.engine.totalCycleRange.start.value) ? 'invalid' : ''}" tabindex="0">
                 ${entry.engine.totalCycleRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalCycleRange.start', entry.engine.totalCycleRange.start.value)}
         
             </td>
-            <td class="data-cell ${entry.engine.totalHourRange.start.state}" tabindex="0">
+            <td class="data-cell ${entry.engine.totalHourRange.start.state} ${!isFieldValid(entry.engine.totalHourRange.start.value) ? 'invalid' : ''}" tabindex="0">
                 ${entry.engine.totalHourRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalHourRange.start', entry.engine.totalHourRange.start.value)}
             </td>
-            <td class="data-cell ${entry.part.totalHourRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.start">
+            <td class="data-cell ${entry.part.totalHourRange.start.state} ${!isFieldValid(entry.part.totalHourRange.start.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.start">
                 ${entry.part.totalHourRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalHourRange.start', entry.part.totalHourRange.start.value)}
             </td>
-            <td class="data-cell ${entry.part.totalCycleRange.start.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.start">
+            <td class="data-cell ${entry.part.totalCycleRange.start.state} ${!isFieldValid(entry.part.totalCycleRange.start.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.start">
                 ${entry.part.totalCycleRange.start.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalCycleRange.start', entry.part.totalCycleRange.start.value)}
             </td>
@@ -464,23 +471,23 @@ async function renderEntries() {
             <td>
                 OFF
             </td>
-            <td class="data-cell ${entry.dateRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end">
+            <td class="data-cell ${entry.dateRange.end.state} ${!isFieldValid(entry.dateRange.end.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="dateRange.end">
                ${entry.dateRange.end.value}
                ${getCellButtons(entry, 'dateRange.end', entry.dateRange.end.value)}
             </td>
-            <td class="data-cell ${entry.engine.totalCycleRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end">
+            <td class="data-cell ${entry.engine.totalCycleRange.end.state} ${!isFieldValid(entry.engine.totalCycleRange.end.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalCycleRange.end">
                 ${entry.engine.totalCycleRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalCycleRange.end', entry.engine.totalCycleRange.end.value)}
             </td>            
-            <td class="data-cell ${entry.engine.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end">
+            <td class="data-cell ${entry.engine.totalHourRange.end.state} ${!isFieldValid(entry.engine.totalHourRange.end.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="engine.totalHourRange.end">
                 ${entry.engine.totalHourRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'engine.totalHourRange.end', entry.engine.totalHourRange.end.value)}
             </td>
-            <td class="data-cell ${entry.part.totalHourRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.end">
+            <td class="data-cell ${entry.part.totalHourRange.end.state} ${!isFieldValid(entry.part.totalHourRange.end.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalHourRange.end">
                 ${entry.part.totalHourRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalHourRange.end', entry.part.totalHourRange.end.value)}
             </td>
-            <td class="data-cell ${entry.part.totalCycleRange.end.state}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.end">
+            <td class="data-cell ${entry.part.totalCycleRange.end.state} ${!isFieldValid(entry.part.totalCycleRange.end.value) ? 'invalid' : ''}" tabindex="0" data-entry-id="${entry.id}" data-field-path="part.totalCycleRange.end">
                 ${entry.part.totalCycleRange.end.value.toLocaleString()}
                 ${getCellButtons(entry, 'part.totalCycleRange.end', entry.part.totalCycleRange.end.value)}
             </td>
@@ -820,6 +827,26 @@ async function onUndoEdit(event, entryId, fieldPath, editIndex) {
 
 async function onConfirmCell(ev, entryId, fieldPath) {
     ev.stopPropagation()
+    
+    // Get the field value to validate
+    const entry = window.demoData.find(e => e.id === entryId)
+    if (!entry) {
+        alert('Entry not found')
+        return
+    }
+    
+    const field = fieldPath.split('.').reduce((obj, key) => obj?.[key], entry)
+    if (!field) {
+        alert('Field not found')
+        return
+    }
+    
+    // Don't allow confirming invalid (empty) fields
+    if (!isFieldValid(field.value) && field.state !== 'confirmed') {
+        alert('Cannot confirm empty field. Please enter a value first.')
+        return
+    }
+    
     if (timelineService.toggleConfirm(entryId, fieldPath)) {
         await renderEntries()
         if (document.querySelectorAll('td.draft').length === 0) {
@@ -920,75 +947,36 @@ function onEditCell(event, entryId, fieldPath, currentValue) {
         }
     })
 }
-function onAddEntry(prevEntryId) {
-    const dialog = document.getElementById('add-entry-dialog')
-    const form = document.getElementById('add-entry-form')
+async function onAddEntry(prevEntryId) {
+    if (!prevEntryId) return
     
-    // Reset form first
-    form.reset()
+    const prevEntry = window.demoData.find(entry => entry.id === prevEntryId)
+    if (!prevEntry) return
     
-    // If there's a previous entry, pre-fill the form
-    if (prevEntryId) {
-        const prevEntry = window.demoData.find(entry => entry.id === prevEntryId)
-        if (prevEntry) {
-            // Pre-fill operator and ESN from previous entry
-            form.querySelector('[name="op"]').value = prevEntry.op.value
-            form.querySelector('[name="esn"]').value = prevEntry.engine.esn.value
-            
-            // Set start date to previous entry's end date
-            form.querySelector('[name="dateRangeStart"]').value = prevEntry.dateRange.end.value
-            
-            // Set engine total cycle start to previous entry's end
-            form.querySelector('[name="engineTotalCycleStart"]').value = prevEntry.engine.totalCycleRange.end.value
-            
-            // Set engine total hour start to previous entry's end
-            form.querySelector('[name="engineTotalHourStart"]').value = prevEntry.engine.totalHourRange.end.value
-            
-            // Set part total cycle start to previous entry's end
-            form.querySelector('[name="partTotalCycleStart"]').value = prevEntry.part.totalCycleRange.end.value
-            
-            // Set part total hour start to previous entry's end
-            form.querySelector('[name="partTotalHourStart"]').value = prevEntry.part.totalHourRange.end.value
-        }
+    // Create new entry with copied values from previous entry
+    const entryData = {
+        op: prevEntry.op.value,
+        dateRangeStart: prevEntry.dateRange.end.value,
+        dateRangeEnd: '', // Empty, to be filled by user
+        esn: prevEntry.engine.esn.value,
+        engineTotalHourStart: prevEntry.engine.totalHourRange.end.value,
+        engineTotalHourEnd: '',
+        engineTotalCycleStart: prevEntry.engine.totalCycleRange.end.value,
+        engineTotalCycleEnd: '',
+        partTotalHourStart: prevEntry.part.totalHourRange.end.value,
+        partTotalHourEnd: '',
+        partTotalCycleStart: prevEntry.part.totalCycleRange.end.value,
+        partTotalCycleEnd: ''
     }
     
-    dialog.showModal()
+    // Add entry via service, positioned right after the previous entry
+    timelineService.addEntry(entryData, prevEntryId)
+    
+    // Re-render the table
+    await renderEntries()
 }
 
-function setupAddEntryForm() {
-    const form = document.getElementById('add-entry-form')
-    
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault()
-        
-        // Get form data
-        const formData = new FormData(form)
-        const entryData = {
-            op: formData.get('op'),
-            dateRangeStart: formData.get('dateRangeStart'),
-            dateRangeEnd: formData.get('dateRangeEnd'),
-            esn: formData.get('esn'),
-            engineTotalHourStart: parseFloat(formData.get('engineTotalHourStart')),
-            engineTotalHourEnd: parseFloat(formData.get('engineTotalHourEnd')),
-            engineTotalCycleStart: parseFloat(formData.get('engineTotalCycleStart')),
-            engineTotalCycleEnd: parseFloat(formData.get('engineTotalCycleEnd')),
-            partTotalHourStart: parseFloat(formData.get('partTotalHourStart')),
-            partTotalHourEnd: parseFloat(formData.get('partTotalHourEnd')),
-            partTotalCycleStart: parseFloat(formData.get('partTotalCycleStart')),
-            partTotalCycleEnd: parseFloat(formData.get('partTotalCycleEnd'))
-        }
-        
-        // Add entry via service
-        timelineService.addEntry(entryData)
-        
-        // Re-render the table
-        await renderEntries()
-        
-        // Close dialog and reset form
-        document.getElementById('add-entry-dialog').close()
-        form.reset()
-    })
-}
+
 
 function onDownloadCSV() {
     const csv = timelineService.getAsCSV()

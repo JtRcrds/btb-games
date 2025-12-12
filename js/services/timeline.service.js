@@ -168,9 +168,24 @@ function remove(entryId) {
     return true
 }
 
-function addEntry(entryData) {
+function addEntry(entryData, afterEntryId) {
     const newEntry = _createEntry(entryData)
-    demoData.push(newEntry)
+    
+    if (afterEntryId) {
+        // Find the index of the entry to insert after
+        const afterIndex = demoData.findIndex(entry => entry.id === afterEntryId)
+        if (afterIndex !== -1) {
+            // Insert right after the found entry
+            demoData.splice(afterIndex + 1, 0, newEntry)
+        } else {
+            // If not found, add at the end
+            demoData.push(newEntry)
+        }
+    } else {
+        // No reference entry, add at the end
+        demoData.push(newEntry)
+    }
+    
     return newEntry
 }
 
@@ -358,6 +373,10 @@ function _createEntry({
     partTotalHourStart,
     partTotalHourEnd
 }) {
+    // Calculate part hours and cycles, only if we have valid end values
+    const partHours = (partTotalHourEnd && partTotalHourStart) ? partTotalHourEnd - partTotalHourStart : '';
+    const partCycles = (partTotalCycleEnd && partTotalCycleStart) ? partTotalCycleEnd - partTotalCycleStart : '';
+    
     return {
         id: id || `entry-${Date.now()}`,
         dateRange: {
@@ -383,13 +402,13 @@ function _createEntry({
             },
             totalHourRange: {
                 start: {
-                    value: engineTotalHourStart || 0,
+                    value: engineTotalHourStart ?? '',
                     state: cellState.draft,
                     edits: [],
                     groundings: []
                 },
                 end: {
-                    value: engineTotalHourEnd || 0,
+                    value: engineTotalHourEnd ?? '',
                     state: cellState.draft,
                     edits: [],
                     groundings: []
@@ -397,13 +416,13 @@ function _createEntry({
             },
             totalCycleRange: {
                 start: {
-                    value: engineTotalCycleStart || 0,
+                    value: engineTotalCycleStart ?? '',
                     state: cellState.draft,
                     edits: [],
                     groundings: []
                 },
                 end: {
-                    value: engineTotalCycleEnd || 0,
+                    value: engineTotalCycleEnd ?? '',
                     state: cellState.draft,
                     edits: [],
                     groundings: []
@@ -412,24 +431,24 @@ function _createEntry({
         },
         part: {
             hours: {
-                value: (partTotalHourEnd || 0) - (partTotalHourStart || 0),
+                value: partHours > 0 ? partHours : '',
                 state: cellState.draft,
                 edits: []
             },
             cycles: {
-                value: (partTotalCycleEnd || 0) - (partTotalCycleStart || 0),
+                value: partCycles > 0 ? partCycles : '',
                 state: cellState.draft,
                 edits: []
             },
             totalHourRange: {
                 start: {
-                    value: partTotalHourStart || 0,
+                    value: partTotalHourStart ?? '',
                     state: cellState.draft,
                     edits: [],
                     groundings: []
                 },
                 end: {
-                    value: partTotalHourEnd || 0,
+                    value: partTotalHourEnd ?? '',
                     state: cellState.draft,
                     edits: [],
                     groundings: []
@@ -437,13 +456,13 @@ function _createEntry({
             },
             totalCycleRange: {
                 start: {
-                    value: partTotalCycleStart || 0,
+                    value: partTotalCycleStart ?? '',
                     state: cellState.draft,
                     edits: [],
                     groundings: []
                 },
                 end: {
-                    value: partTotalCycleEnd || 0,
+                    value: partTotalCycleEnd ?? '',
                     state: cellState.draft,
                     edits: [],
                     groundings: []
