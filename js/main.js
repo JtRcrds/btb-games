@@ -81,16 +81,25 @@ async function onToggleDetails(ev, entryId, fieldPath) {
     if (!researchRow || !researchPanel) return
     
     const isVisible = researchRow.classList.contains('visible')
+    const isSameEntry = groundingNavigationState.entryId === entryId
+    const isSameField = groundingNavigationState.fieldPath === fieldPath
     
-    if (isVisible) {
-        // Close
-        researchPanel.classList.remove('expanded')
-        setTimeout(() => {
-            researchRow.classList.remove('visible')
-        }, 300)
-    } else {
-        // Close all other research panels first
-        document.querySelectorAll('.research-row.visible').forEach(row => {
+    // If panel is open for the same entry but different field, just update the content
+    if (isVisible && isSameEntry && !isSameField) {
+        // Just update the content without closing/opening animation
+        await loadGroundingsForField(entryId, fieldPath)
+        return
+    }
+    
+    // If clicking the same field when panel is open, do nothing (or toggle off if preferred)
+    if (isVisible && isSameEntry && isSameField) {
+        // Already showing this field, do nothing
+        return
+    }
+    
+    // Close all other research panels (from different entries)
+    document.querySelectorAll('.research-row.visible').forEach(row => {
+        if (row.id !== `research-row-${entryId}`) {
             const panel = row.querySelector('.research-panel')
             if (panel) {
                 panel.classList.remove('expanded')
@@ -98,37 +107,44 @@ async function onToggleDetails(ev, entryId, fieldPath) {
                     row.classList.remove('visible')
                 }, 300)
             }
-        })
-        
-        // Open this one and load groundings
+        }
+    })
+    
+    // Open this panel if not already visible
+    if (!isVisible) {
         researchRow.classList.add('visible')
         setTimeout(() => {
             researchPanel.classList.add('expanded')
         }, 10)
-
-        // Load groundings
-        const groundings = timelineService.getGroundings(entryId, fieldPath)
-        console.log('Groundings for', entryId, fieldPath, groundings)
-
-        // Initialize navigation state
-        groundingNavigationState.entryId = entryId
-        groundingNavigationState.fieldPath = fieldPath
-        groundingNavigationState.allGroundings = groundings
-        groundingNavigationState.currentGroundingIndex = 0
-
-        if (groundingNavigationState.allGroundings.length === 0) {
-            return
-        }
-
-        // Navigate to first grounding
-        await navigateToGrounding(0)
-
-        // Update grounding navigation UI
-        updateGroundingNavigationUI()
-
-        // Render document list
-        await renderDocumentList(entryId, groundings)
     }
+
+    // Load groundings for the selected field
+    await loadGroundingsForField(entryId, fieldPath)
+}
+
+async function loadGroundingsForField(entryId, fieldPath) {
+    // Load groundings
+    const groundings = timelineService.getGroundings(entryId, fieldPath)
+    console.log('Groundings for', entryId, fieldPath, groundings)
+
+    // Initialize navigation state
+    groundingNavigationState.entryId = entryId
+    groundingNavigationState.fieldPath = fieldPath
+    groundingNavigationState.allGroundings = groundings
+    groundingNavigationState.currentGroundingIndex = 0
+
+    if (groundingNavigationState.allGroundings.length === 0) {
+        return
+    }
+
+    // Navigate to first grounding
+    await navigateToGrounding(0)
+
+    // Update grounding navigation UI
+    updateGroundingNavigationUI()
+
+    // Render document list
+    await renderDocumentList(entryId, groundings)
 }
 
 async function renderDocumentList(entryId, groundings) {
@@ -551,6 +567,29 @@ function renderPageInfo() {
 
 function setupTableKeyboardNavigation() {
     const table = document.querySelector('.timeline-table')
+
+    // Add click handler for cells
+    table.addEventListener('click', (e) => {
+        const cell = e.target.closest('.cell-with-groundings')
+        
+        // Ignore clicks on buttons inside cells
+        if (e.target.closest('button')) {
+            return
+        }
+        
+        if (cell) {
+            const entryId = cell.dataset.entryId
+            const fieldPath = cell.dataset.fieldPath
+            
+            if (entryId && fieldPath) {
+                // If research panel is open for this entry, switch to the clicked field
+                const researchRow = document.getElementById(`research-row-${entryId}`)
+                if (researchRow && researchRow.classList.contains('visible')) {
+                    onToggleDetails(null, entryId, fieldPath)
+                }
+            }
+        }
+    })
 
     table.addEventListener('keydown', (e) => {
         const activeCell = document.activeElement
