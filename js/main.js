@@ -168,7 +168,7 @@ async function loadGroundingsForField(entryId, fieldPath) {
         
         // Clear PDF viewer and show placeholder message
         const pdfContainer = document.getElementById(`pdf-container-${entryId}`)
-        const docNameEl = pdfContainer?.querySelector('#doc-name')
+        const docNameEl = document.getElementById(`doc-name-${entryId}`)
         if (docNameEl) {
             docNameEl.textContent = 'Select a document to view'
         }
@@ -297,7 +297,7 @@ async function renderDocumentList(entryId, groundings) {
         </div>`
         toggleButton = '' // Show all docs by default when no groundings
     } else {
-        headerText = `<div class="doc-list-header"><h4>Grounding Documents (${groundedDocs.length} ${groundedDocs.length === 1 ? 'grounding' : 'groundings'})</h4></div>`
+        headerText = `<div class="doc-list-header"><h4>Grounding Documents <br/> (${groundedDocs.length} ${groundedDocs.length === 1 ? 'grounding' : 'groundings'})</h4></div>`
         toggleButton = nonGroundedDocs.length > 0
             ? `<button class="show-more-docs-btn" onclick="app.onShowMoreDocs('${entryId}')">
                    ${groundingNavigationState.showAllDocs ? 'Show Less' : `Show More (${nonGroundedDocs.length} more)`}
@@ -368,14 +368,14 @@ async function onViewNonGroundedDoc(event, docId, entryId) {
     
     // Update document name in UI
     const pdfContainer = document.getElementById(`pdf-container-${entryId}`)
-    const docNameEl = pdfContainer?.querySelector('#doc-name')
+    const docNameEl = document.getElementById(`doc-name-${entryId}`)
     if (docNameEl) {
         docNameEl.textContent = selectedDoc.description
     }
     
     // Update page info within the specific entry's container
-    const pageNumEl = pdfContainer?.querySelector('#page-num')
-    const pageCountEl = pdfContainer?.querySelector('#page-count')
+    const pageNumEl = document.getElementById(`page-num-${entryId}`)
+    const pageCountEl = document.getElementById(`page-count-${entryId}`)
     if (pageNumEl) pageNumEl.textContent = pdfState.currentPageNum
     if (pageCountEl) pageCountEl.textContent = pdfState.totalPages
 }
@@ -614,11 +614,11 @@ async function renderEntries() {
                                 </div>
                             </div>
                             <div class="pdf-doc-info">
-                                <strong>Document:</strong> <span id="doc-name">-</span>
+                                <strong>Document:</strong> <span id="doc-name-${entry.id}">-</span>
                             </div>
                             <div class="pdf-controls">
                                 <button onclick="app.onPrevPage()">◄ Previous Page</button>
-                                <span id="page-info">Page: <span id="page-num">1</span> / <span id="page-count">-</span></span>
+                                <span id="page-info-${entry.id}">Page: <span id="page-num-${entry.id}">1</span> / <span id="page-count-${entry.id}">-</span></span>
                                 <button onclick="app.onNextPage()">Next Page ►</button>
                             </div>
                             <div class="canvas-wrapper">
@@ -797,9 +797,15 @@ function onPrevPage() {
 }
 
 function renderPageInfo() {
-    document.getElementById('page-num').textContent = pdfState.currentPageNum
-    document.getElementById('page-count').textContent = pdfState.totalPages
-    const docNameEl = document.getElementById('doc-name')
+    const entryId = groundingNavigationState.entryId
+    if (!entryId) return
+    
+    const pageNumEl = document.getElementById(`page-num-${entryId}`)
+    const pageCountEl = document.getElementById(`page-count-${entryId}`)
+    if (pageNumEl) pageNumEl.textContent = pdfState.currentPageNum
+    if (pageCountEl) pageCountEl.textContent = pdfState.totalPages
+    
+    const docNameEl = document.getElementById(`doc-name-${entryId}`)
     if (docNameEl && pdfState.currentDocName) {
         docNameEl.textContent = pdfState.currentDocName
     }
