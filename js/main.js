@@ -378,6 +378,12 @@ async function onViewNonGroundedDoc(event, docId, entryId) {
     const pageCountEl = document.getElementById(`page-count-${entryId}`)
     if (pageNumEl) pageNumEl.textContent = pdfState.currentPageNum
     if (pageCountEl) pageCountEl.textContent = pdfState.totalPages
+    
+    // Hide grounding navigation since this document is not grounded yet
+    const groundingNav = document.getElementById(`grounding-nav-${entryId}`)
+    if (groundingNav) {
+        groundingNav.style.display = 'none'
+    }
 }
 
 async function onAddAsGrounding(event, docId, entryId) {
