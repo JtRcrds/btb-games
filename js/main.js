@@ -728,19 +728,27 @@ async function navigateToGrounding(index) {
     })
 }
 
-function onNextGrounding() {
+async function onNextGrounding() {
     if (groundingNavigationState.currentGroundingIndex < groundingNavigationState.allGroundings.length - 1) {
         groundingNavigationState.currentGroundingIndex++
-        navigateToGrounding(groundingNavigationState.currentGroundingIndex)
+        await navigateToGrounding(groundingNavigationState.currentGroundingIndex)
         updateGroundingNavigationUI()
+        // Update document list to reflect the new selected document
+        const entryId = groundingNavigationState.entryId
+        await renderDocumentList(entryId, groundingNavigationState.allGroundings)
+        lucide.createIcons()
     }
 }
 
-function onPrevGrounding() {
+async function onPrevGrounding() {
     if (groundingNavigationState.currentGroundingIndex > 0) {
         groundingNavigationState.currentGroundingIndex--
-        navigateToGrounding(groundingNavigationState.currentGroundingIndex)
+        await navigateToGrounding(groundingNavigationState.currentGroundingIndex)
         updateGroundingNavigationUI()
+        // Update document list to reflect the new selected document
+        const entryId = groundingNavigationState.entryId
+        await renderDocumentList(entryId, groundingNavigationState.allGroundings)
+        lucide.createIcons()
     }
 }
 
