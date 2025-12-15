@@ -170,6 +170,10 @@ button {
     opacity: 1;
 }
 
+.timeline-table td:not(.actions-cell):not(.add-entry-cell):not(.research-cell) button:not([disabled]):hover {
+    background-color: rgba(128, 128, 128, 0.2);
+    border-radius: 4px;
+}
 
 .timeline-table td:not(.actions-cell) button[title="Show/Hide Details"]:hover {
     transform: scale(1.1);

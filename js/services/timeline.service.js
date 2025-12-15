@@ -381,8 +381,8 @@ function _createEntry({
     partTotalHourEnd
 }) {
     // Calculate part hours and cycles, only if we have valid end values
-    const partHours = (partTotalHourEnd && partTotalHourStart) ? partTotalHourEnd - partTotalHourStart : '';
-    const partCycles = (partTotalCycleEnd && partTotalCycleStart) ? partTotalCycleEnd - partTotalCycleStart : '';
+    const partHours = (partTotalHourEnd != null && partTotalHourStart != null) ? partTotalHourEnd - partTotalHourStart : '';
+    const partCycles = (partTotalCycleEnd != null && partTotalCycleStart != null) ? partTotalCycleEnd - partTotalCycleStart : '';
 
     return {
         id: id || `entry-${Date.now()}`,
@@ -1149,9 +1149,9 @@ const validationRules = [
 
 
 
-const btbEntries = [
+const btbPeriods = [
     {
-        "id": "entry-101",
+        "id": "period-101",
         "dateRange": {
             "start": {
                 "value": "13-Jul-2005",
@@ -1159,13 +1159,13 @@ const btbEntries = [
                 "edits": [],
                 "groundings": [
                     {
-                        "cFileId": "cfile-101",
-                        "pageNum": 2,
+                        // "cFileId": "cfile-101",
+                        // "pageNum": 2,
                         "docId": "doc1",
-                        "x1": 145,
-                        "y1": 498,
-                        "x2": 255,
-                        "y2": 523
+                        // "x1": 145,
+                        // "y1": 498,
+                        // "x2": 255,
+                        // "y2": 523
                     },
                     {
                         "cFileId": "cfile-101",
